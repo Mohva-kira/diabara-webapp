@@ -1,0 +1,53 @@
+# Configuration pour Diabara TV
+RewriteEngine On
+
+# Force HTTPS (optionnel)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Configuration des types MIME pour les fichiers JavaScript
+AddType application/javascript .js
+AddType application/javascript .mjs
+AddType text/javascript .js
+
+# Configuration pour les modules ES6
+<Files "*.js">
+    Header set Content-Type "application/javascript"
+</Files>
+
+# Gestion du cache pour les assets
+<IfModule mod_expires.c>
+    ExpiresActive on
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+</IfModule>
+
+# Gestion du routage SPA (Single Page Application)
+# Rediriger toutes les requêtes vers index.html sauf pour les fichiers existants
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+
+# Protection contre l'accès direct aux fichiers de configuration
+<Files ".htaccess">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Compression gzip
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+</IfModule>

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" class="h-full bg-gray-50">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/src/assets/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/src/public/manifest.json" />
+    <link rel="icon" href="/src/assets/favicon.ico" />
+
+    <meta property="og:type" content="Stream App" />
+    <meta
+      property="og:title"
+      content="Vibrez au rythme de la culture Africiane" />
+    <meta
+      property="og:description"
+      content="How much does culture influence creative thinking?" />
+    <meta
+      property="og:image"
+      content="http://static01.nyt.com/images/2015/02/19/arts/international/19iht-btnumbers19A/19iht-btnumbers19A-facebookJumbo-v2.jpg" />
+    <!-- Primary Meta Tags -->
+    <title>Diabara TV</title>
+    <meta name="title" content="Diabara TV" />
+
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-YQKY9V1351"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-YQKY9V1351");
+    </script>
+    <script src="https://cdn.cinetpay.com/seamless/main.js"></script>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./service-worker.js").then(
+            (registration) => {
+              console.log(
+                "ServiceWorker registration successful with scope: ",
+                registration.scope
+              );
+            },
+            (error) => {
+              console.log("ServiceWorker registration failed: ", error);
+            }
+          );
+        });
+      }
+    </script>
+    <style>
+      .sdk {
+        display: block;
+        position: absolute;
+        background-position: center;
+        text-align: center;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+    </style>
+
+    <!-- Meta Tags Generated with https://metatags.io -->
+    <title>Diabara TV</title>
+  </head>
+  <body class="h-full overflow-hidden">
+    <div id="root"></div>
+    <script type="module" src="/src/index.jsx"></script>
+  </body>
+</html>
