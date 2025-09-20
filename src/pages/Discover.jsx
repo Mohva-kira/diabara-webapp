@@ -150,7 +150,7 @@ const Discover = () => {
   console.log("Indexed", indexedStreams);
 
   useEffect(() => {
-    const result = visitorData?.data[0].attributes.uuid === deviceID;
+    const result = visitorData?.data[0]?.attributes?.uuid === deviceID;
     setIsVisited(result);
   }, [visitorData?.data.length > 0]);
 

@@ -27,7 +27,7 @@ const Sidebar = () => {
 
   return (
     <>
-      <div className="md:flex hidden flex-col w-[240px] py-10 px-4 justify-between bg-[#191624]">
+      <div className="md:flex hidden flex-col w-[240px] py-10 px-4 justify-between bg-[#1a1927]">
         <div>
           <img src={logo} alt="logo" className="w-full h-auto object-contain" />
           <NavLinks />

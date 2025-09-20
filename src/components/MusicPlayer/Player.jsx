@@ -128,7 +128,7 @@ const Player = ({ activeSong, isPlaying, volume, seekTime, onEnded, onTimeUpdate
   // 
   return (
     <audio
-      src={onLine ? `${API_FILE_URL}${activeSong?.attributes.audio.data.attributes.url}` : activeSong.attributes.audio}
+      src={onLine ? `${API_FILE_URL}${activeSong?.attributes.audio?.data.attributes.url}` : activeSong.attributes.audio}
       ref={ref}
       loop={repeat}
       onEnded={onEnded}

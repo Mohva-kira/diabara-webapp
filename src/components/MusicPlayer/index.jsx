@@ -12,6 +12,12 @@ import Seekbar from "./Seekbar";
 import Track from "./Track";
 import VolumeBar from "./VolumeBar";
 
+import SongActions from "../SongActions";
+import Like from "../Like";
+import Playlist from "../Playlist";
+import Download from "../Download";
+import Streams from "../Streams";
+
 const MusicPlayer = ({ setIsVisible }) => {
   const { activeSong, currentSongs, currentIndex, isActive, isPlaying } =
     useSelector((state) => state.player);
@@ -22,6 +28,11 @@ const MusicPlayer = ({ setIsVisible }) => {
   const [repeat, setRepeat] = useState(false);
   const [shuffle, setShuffle] = useState(false);
   const dispatch = useDispatch();
+
+
+  const user = localStorage.getItem("auth")
+  ? JSON.parse(localStorage.getItem("auth"))
+  : null;
 
   const handlePlayPause = () => {
     // if (!isActive) return;
@@ -76,12 +87,25 @@ const MusicPlayer = ({ setIsVisible }) => {
     ],
   });
   return (
-    <div className="relative sm:px-2 px-2 w-full flex flex-col items-center justify-between">
+    <div className="relative sm:px-2 mb-5 px-2 m-2 w-full flex flex-col items-center justify-between  border-t border-gray-600">
       <div
         onClick={() => setIsVisible(false)}
         className="absolute top-2 right-5 font-bold text-2xl text-white">
         X
       </div>
+      <div className=" flex justify-center absolute top-2 right-14">
+       <SongActions
+            songId={activeSong.id}
+            song={activeSong}
+            user={user}
+            streams={activeSong.streams || 0}
+            Like={Like}
+            Playlist={Playlist}
+            Download={Download}
+            StreamsComponent={Streams}
+            className="mt-3 mb-2"
+          />
+        </div> 
       <Track
         isPlaying={isPlaying}
         isActive={isActive}
@@ -108,6 +132,11 @@ const MusicPlayer = ({ setIsVisible }) => {
           setSeekTime={setSeekTime}
           appTime={appTime}
         />
+        
+        {/* Actions de la chanson active */}
+     
+         
+        
         <Player
           activeSong={activeSong}
           volume={volume}

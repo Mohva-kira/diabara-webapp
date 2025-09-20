@@ -1,11 +1,18 @@
 import axios from "axios";
-import { useCallback, useRef, useState } from "react";
+
+
+import React, { useState, useEffect, useCallback, useRef  } from "react";
+import { Link, useMatch } from "react-router-dom";
+
+
+
+
 import ReactGA from "react-ga4";
 import { BsFilePerson } from "react-icons/bs";
 import { IoAlbumsOutline } from "react-icons/io5";
 import { MdMusicNote } from "react-icons/md";
 import { useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
+
 
 import { playPause, setActiveSong } from "../redux/features/playerSlice";
 import { usePlayedMutation } from "../redux/services/songsApi";
@@ -17,6 +24,7 @@ import PlayPause from "./PlayPause";
 import SocialShare from "./SocialShare";
 import "./SongCard.css";
 import Streams from "./Streams";
+import SongActions from "./SongActions";
 
 const SongCard = ({
   song,
@@ -37,6 +45,9 @@ const SongCard = ({
   const [count, setCount] = useState(0);
   const [postPlayed] = usePlayedMutation();
 
+  const isDetails = useMatch("/songs/:songid");
+  const detailSong = isDetails?.params.songid;
+
   ReactGA.initialize([
     {
       trackingId: "G-YQKY9V1351",
@@ -51,6 +62,8 @@ const SongCard = ({
   const userId = user?.user?.id;
   // console.log("userId", userId);
   const userUUID = localStorage.getItem("uuid");
+
+  
 
   const gaEventTracker = useAnalyticsEventTracker("Songs");
 
@@ -143,7 +156,7 @@ const SongCard = ({
   };
 
   const handlePlayClickWithCounter = useCallback(() => {
-    if (count <= 2) {
+    if (count <= 1) {
       counter();
       console.log("count", count);
     } else {
@@ -154,8 +167,8 @@ const SongCard = ({
   return (
     <div onClick={handlePlayClickWithCounter} className={`h-full  `}>
       <div
-        className={`flex md:flex-col ${detail ? detail : "md:w-[241px]"} md:p-4 corner bg-white/5 w-full md:h-[350px] bg-opacity-80 h-32  backdrop-blur-sm animate-slideup rounded-[2em]`}>
-        {count < 3 ? (
+        className={`flex md:flex-col ${isDetails ? "  md:h-[541px]" : "md:w-[241px]"} md:p-4 corner bg-white/5 w-full md:h-[350px] bg-opacity-80 h-32  backdrop-blur-sm animate-slideup rounded-[2em]`}>
+        {count < 1 ? (
           <a
             href="https://www.effectiveratecpm.com/dk6epffzw?key=d70309a31870584c5914e216f01fb799"
             target="_blank"
@@ -227,21 +240,21 @@ const SongCard = ({
             </div>
           </a>
         ) : (
-          <div className="relative  rounded-full md:rounded-none px-4 md:h-40 flex md:flex-col h-24  md:w-full group">
+          <div className={`"relative  rounded-full md:rounded-none px-4 flex md:flex-col  md:w-full group" ${ isDetails ? "md:h-[541px]" : "h-24" }`}>
             {renderImage()}
             <div
-              className={`absolute md:w-full md:h-full inset-0 justify-center items-center bg-orange-500 bg-opacity-80 group-hover:flex ${
-                activeSong?.id === song.id
-                  ? "flex bg-black w-full bg-opacity-70"
-                  : "hidden  bg-black w-full bg-opacity-20 "
-              } md:rounded-2xl rounded-full`}>
-              <PlayPause
-                song={song}
-                handlePause={handlePauseClick}
-                handlePlay={handlePlayClick}
-                isPlaying={isPlaying}
-                activeSong={activeSong}
-              />
+              className={`absolute inset-0 h-full flex items-center justify-center transition-opacity duration-200
+                ${activeSong?.id === song.id ? "opacity-100 bg-black bg-opacity-40" : "opacity-0 group-hover:opacity-100 bg-black bg-opacity-20"}
+                md:rounded-2xl rounded-full pointer-events-none`}>
+              <div className="pointer-events-auto shadow-md rounded-full md:rounded-2xl p-2 bg-black bg-opacity-50 shadow-white/70">
+                <PlayPause
+                  song={song}
+                  handlePause={handlePauseClick}
+                  handlePlay={handlePlayClick}
+                  isPlaying={isPlaying}
+                  activeSong={activeSong}
+                />
+              </div>
             </div>
             <div className="relative w-full h-full flex justify-center items-center"></div>
 
@@ -273,16 +286,17 @@ const SongCard = ({
                   </p>
                 )}
               </div>
-              <div className=" flex  flex-row md:items-end items-center md:justify-end justify-center md:gap-4">
-                {user && <Like song={song.id} user={user?.user?.id} />}
-                {user && <Playlist song={song.id} user={user?.user?.id} />}
-                {user && <Download song={song} user={user?.user} />}
-                <Streams
-                  song={song.id}
-                  user={user?.user?.id}
-                  streams={streams}
-                />
-              </div>
+              <SongActions
+                songId={song.id}
+                song={song}
+                user={user}
+                streams={streams}
+                Like={Like}
+                Playlist={Playlist}
+                Download={Download}
+                StreamsComponent={Streams}
+                className="mt-2"
+             />
               <a className="md:block hidden" onClick={share}>
                 <SocialShare
                   url={`https://diabara.tv/songs/${song.id}`}

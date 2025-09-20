@@ -98,16 +98,7 @@ const App = () => {
 
   // alert(window.screen.width)
   // console.log('pwaaaa', isInstalled, supported)
-  useEffect(() => {
-    initGA();
-    ReactGA.send({
-      hitType: "pageview",
-      page: window.location.href,
-      title: window.location.pathname,
-    });
-    console.log("ga log", window.location.pathname);
-  }, []);
-
+ 
   const helmetContext = {};
 
   return (
@@ -118,7 +109,7 @@ const App = () => {
         <div className="flex-1 flex flex-col bg-gradient-to-br from-black to-[#121286]">
           <Header />
 
-          <div className="px-2 overflow-y-scroll hide-scrollbar flex flex-col-reverse xl:flex-row h-[calc(100vh-140px)] sm:h-[calc(100vh-70px)]">
+          <div className="px-2 overflow-y-scroll hide-scrollbar flex flex-col-reverse xl:flex-row h-[calc(100vh-100px)] sm:h-[calc(100vh-70px)]">
             {supported && !isInstalled && (
               <div onClick={handleClick}>Install App</div>
             )}
@@ -175,7 +166,7 @@ const App = () => {
           <div
             className={`${
               isVisible ? "flex flex-col" : "hidden"
-            } fixed bottom-0 left-0 right-0 w-full h-32 z-50 items-center justify-between px-6 backdrop-blur-md bg-gradient-to-r from-[#1c1c6e] via-[#2e2e88] to-[#3a3a9c] rounded-t-3xl shadow-2xl`}>
+            } fixed bottom-0 left-0 right-0 w-full  z-50 items-center justify-between px-6 backdrop-blur-md bg-gradient-to-r from-[#1c1c6e] via-[#2e2e88] to-[#3a3a9c] rounded-t-3xl shadow-2xl`}>
             <MusicPlayer setIsVisible={setIsVisible} />
 
             {!isVisible && (
