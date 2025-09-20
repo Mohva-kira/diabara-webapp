@@ -1,21 +1,20 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { setCredentials, logOut } from "../features/auth/authSlice";
 
 const API_URL = import.meta.env.VITE_API_URL;
-console.log('api', API_URL)
+console.log('api', API_URL);
 const API_KEY = import.meta.env.VITE_API_KEY;
 
-const apiUrl = "https://api.diabara.tv/api/auth";
-// const apiUrl = process.env.REACT_APP_API_URL
-console.log('api url', apiUrl)
 const baseQuery = fetchBaseQuery({
   baseUrl: API_URL,
-
-  prepareHeaders:  (headers, { getState }) => {
- 
-
-    headers.set("Content-Type", "Application/json");
-    headers.set("Accept", "Application/json");
+  prepareHeaders: (headers, { getState }) => {
+    const token = getState().user?.token;
+    
+    headers.set("Content-Type", "application/json");
+    headers.set("Accept", "application/json");
+    
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
 
     return headers;
   },
@@ -24,49 +23,61 @@ const baseQuery = fetchBaseQuery({
 const baseQueryWithReauth = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
-  // if(result) {
-  //     console.log('sending refresh token')
-
-  //     const refreshResult = await baseQuery('/refresh', api, extraOptions)
-  //     console.log(refreshResult)
-
-  //     if(refreshResult?.data){
-  //         const user = api.getState().auth.user
-  //         api.dispatch(setCredentials({ ...refreshResult.data, user}))
-
-  //         result = await baseQuery(args, api, extraOptions)
-  //     }else {
-  //         api.dispatch(logOut())
-  //     }
-
-  //     return result
-  // }
+  // Si le token est expiré, déconnecter l'utilisateur
+  if (result.error && result.error.status === 401) {
+    // Import dynamique pour éviter les dépendances circulaires
+    const { logOut } = await import('../features/userSlice');
+    api.dispatch(logOut());
+  }
 
   return result;
 };
 
 export const authApi = createApi({
-  reducerPath: "Auth",
+  reducerPath: "authApi",
   baseQuery: baseQueryWithReauth,
+  tagTypes: ['User'],
   endpoints: (builder) => ({
     login: builder.mutation({
-      // The URL for the request is '/fakeApi/posts'
-      query: (data) => ({ url: "/auth/local", body: data, method: "POST" }),
+      query: (data) => ({ 
+        url: "/auth/local", 
+        body: data, 
+        method: "POST" 
+      }),
+      invalidatesTags: ['User'],
     }),
 
     register: builder.mutation({
-
-      query: (data) => ({ url: "/auth/local/register", body: data, method: "POST" }),
-
+      query: (data) => ({ 
+        url: "/auth/local/register", 
+        body: data, 
+        method: "POST" 
+      }),
+      invalidatesTags: ['User'],
     }),
 
     getMe: builder.query({
-      query: () => 'http://localhost:1337/api/users/me?populate=*',
-      
-    })    
+      query: () => ({
+        url: "/users/me",
+        params: { populate: '*' }
+      }),
+      providesTags: ['User'],
+    }),
+    
+    updateProfile: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/users/${id}`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: ['User'],
+    }),
   }),
-
 });
 
-
-export const {useLoginMutation, useRegisterMutation, useGetMeQuery} = authApi
+export const {
+  useLoginMutation, 
+  useRegisterMutation, 
+  useGetMeQuery,
+  useUpdateProfileMutation,
+} = authApi;

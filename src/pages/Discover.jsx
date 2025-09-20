@@ -26,8 +26,8 @@ import {
   SongCard,
   VideoPlayer,
 } from "../components";
-import { selectGenreListId } from "../redux/features/playerSlice";
-import { useGetSongsQuery } from "../redux/services/songsApi";
+
+import { useGetSongsQuery, useLazyGetSongsQuery } from "../redux/services/songsApi";
 
 import ReactGA from "react-ga4";
 import Introduction from "../components/Introduction";
@@ -44,6 +44,8 @@ import {
 import { useGetPromotionQuery } from "../redux/services/promo";
 import Ads from "./../components/Ads";
 import PlayedList from "../components/PlayedList";
+import { useDispatch, useSelector } from 'react-redux';
+import { selectGenreListId } from '../redux/features/playerSlice'; // Import corrigé
 
 const Discover = () => {
   ReactGA.send({
@@ -63,8 +65,10 @@ const Discover = () => {
   const { activeSong, isPlaying, genreListId } = useSelector(
     (state) => state.player
   );
-  const { data, isSuccess, isFetching, isLoading, error } = useGetSongsQuery();
+  
+  const [getSongs, { data, isLoading: isLazyLoading }] = useLazyGetSongsQuery();
 
+  const [pageSize, setPageSize] = useState(30);
   const {
     data: streamsData,
     isSuccess: isStreamSuccess,
@@ -73,6 +77,8 @@ const Discover = () => {
     currentData: streamCurrent,
     refetch: refetchStreams,
   } = useGetStreamsQuery("");
+
+
   const {
     data: promotionData,
     isSuccess: isPromotionSuccess,
@@ -141,14 +147,42 @@ const Discover = () => {
   }, [visitorData?.data.length > 0]);
 
   useEffect(() => {
+    getSongs(pageSize);
     dispatch(setSongs(data));
-  }, [isSuccess]);
+  }, []);
+
+  useEffect(() => {
+    getSongs(pageSize);
+  }, [pageSize]);
+  useEffect(() => {
+    if (isLazyLoading) {
+      setStatus("Loading more songs...");
+    } else {
+      setStatus("");
+    }
+  }, [isLazyLoading]);
+
+  useEffect(() => {
+    window.addEventListener("scroll", () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop + 1 >=
+        document.documentElement.scrollHeight
+      ) {
+        console.log("Reached bottom");
+        setPageSize((prev) => prev + 10);
+      }
+    });
+    return () => {  
+
+      window.removeEventListener("scroll", () => {});
+    };
+  }, []);
 
   console.log("promotion", promotionData);
 
-  if (isFetching) return <Loader title="loading songs...." />;
+  if (isLazyLoading) return <Loader title="loading songs...." />;
 
-  if (error) return <Error />;
+  // if (error) return <Error />;
 
   // console.log("location", geolocation.getCurrentPosition(successCallback));
 
@@ -227,7 +261,7 @@ const Discover = () => {
         </div>
       </div>
 
-      {isLoading || isFetching || !realData ? (
+      {isLazyLoading|| !realData ? (
         <Loader />
       ) : (
         <Scrollable data={realData}>

@@ -1,25 +1,43 @@
-import React, { useEffect, useRef, useState } from 'react'
-import Input from './Input'
-import { ColumnDirective, ColumnsDirective, GridComponent } from '@syncfusion/ej2-react-grids'
-import { CgDollar } from 'react-icons/cg'
-import { CiStreamOn } from 'react-icons/ci'
-import { useGetSongByArtistQuery, useGetSongsQuery } from '../redux/services/songsApi'
-import { useGetStreamsByArtistQuery, useGetStreamsQuery } from '../redux/services/streams'
+import React, { useMemo, useState, useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import { 
+  ColumnDirective, 
+  ColumnsDirective, 
+  GridComponent,
+  Page,
+  Inject,
+  Sort,
+  Filter,
+  Toolbar
+} from '@syncfusion/ej2-react-grids';
+
+// Icons
+import { CgDollar } from 'react-icons/cg';
+import { CiStreamOn } from 'react-icons/ci';
+import { MdTrendingUp, MdTrendingDown } from 'react-icons/md';
+import { FaMusic, FaCalendarAlt } from 'react-icons/fa';
+
+// Redux - Correction de l'import
+import { useGetSongByArtistQuery } from '../redux/services/songsApi'; // Changé
+import { selectUser } from '../redux/features/userSlice';
+
+// Components
+import Loader from './Loader';
+import Error from './Error';
 
 const ArtistRevenue = ({ artistID }) => {
-
-    const ref = useRef()
-    const { data: songData, isFetching: isSongFetching, isError: isSongError } = useGetSongByArtistQuery(artistID)
-    const { data: streamsData } = useGetStreamsByArtistQuery(artistID)
-
-    const [streamed, setStreamed] = useState()
-    let data = [
-        { 'OrderID': 10248, 'CustomerID': 'VINET', 'ShipCountry': 'France' },
-        { 'OrderID': 10249, 'CustomerID': 'TOMSP', 'ShipCountry': 'Germany' },
-        { 'OrderID': 10250, 'CustomerID': 'HANAR', 'ShipCountry': 'Brazil' },
-        { 'OrderID': 10251, 'CustomerID': 'VICTE', 'ShipCountry': 'France' }
-    ];
-
+  const user = useSelector(selectUser);
+  const [selectedPeriod, setSelectedPeriod] = useState('month');
+  
+  // Correction de la query
+  const { 
+    data: songData, 
+    isFetching: isSongFetching, 
+    isError: isSongError,
+    error: songError 
+  } = useGetSongByArtistQuery(artistID, {
+    skip: !artistID
+  });
 
     const treatData = () => {
         let result = []

@@ -1,255 +1,344 @@
-import { useDispatch } from "react-redux";
+import React, { memo, useCallback, useState, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
-import { playPause, setActiveSong } from "../redux/features/playerSlice";
-import PlayPause from "./PlayPause";
+// Redux
+import { playSong, playPause, selectCurrentSong, selectIsPlaying } from "../redux/features/playerSlice";
+import { selectUser, addToRecentlyPlayed, incrementListeningTime } from "../redux/features/userSlice";
 
-import { useRef, useState } from "react";
-import { BsFilePerson } from "react-icons/bs";
-import { IoAlbumsOutline } from "react-icons/io5";
-import { MdMusicNote } from "react-icons/md";
-import { logEvent } from "../analytics";
-import useAnalyticsEventTracker from "./hook/useAnalyticsEventTracker";
+// Components
+import PlayPause from "./PlayPause";
 import Like from "./Like";
 import Loader from "./Loader";
 import Playlist from "./Playlist";
 import SocialShare from "./SocialShare";
-import "./SongCard.css";
+import Download from "./Download";
 import Streams from "./Streams";
 
-import axios from "axios";
-import ReactGA from "react-ga4";
+// Icons
+import { BsFilePerson } from "react-icons/bs";
+import { IoAlbumsOutline } from "react-icons/io5";
+import { MdMusicNote, MdPlayArrow, MdPause } from "react-icons/md";
+
+// Utils
+import { logEvent } from "../analytics";
+import useAnalyticsEventTracker from "./hook/useAnalyticsEventTracker";
 import { useAddPlayedMutation } from "../redux/services/played";
 import { useGetVisitorsByUUIDQuery } from "../redux/services/visitor";
-import Download from "./Download";
 
-const SongCard = ({
+import "./SongCard.css";
+
+const SongCard = memo(({
   song,
-  i,
-  activeSong,
-  isPlaying,
+  index,
   data,
   streams,
   refetchStreams,
   isStreamFetching,
-  detail,
+  detail = false,
+  className = "",
 }) => {
-  //Google Analytics
-  ReactGA.send({
-    hitType: "pageview",
-    page: `/songs/${song?.attributes.name}`,
-    title: `${song?.name - song?.attributes.artist?.data?.attributes?.name}`,
-  });
-
+  // Redux state
   const dispatch = useDispatch();
-
-  const { onLine } = window.navigator;
-  const imgRef = useRef();
-
+  const currentSong = useSelector(selectCurrentSong);
+  const isPlaying = useSelector(selectIsPlaying);
+  const user = useSelector(selectUser);
+  
+  // Local state
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  
+  // Refs
+  const imageRef = useRef(null);
+  
+  // Constants
   const API_FILE_URL = import.meta.env.VITE_API_FILE_URL;
-
-  //event Tracker
-
-  const gaEventTracker = useAnalyticsEventTracker("Songs");
-
-  const [imgLoading, setImgLoading] = useState(true);
+  const { onLine } = window.navigator;
   const deviceId = localStorage.getItem("uuid");
-  console.log("deviceId", deviceId);
-
+  
+  // Queries
   const { data: visitorData } = useGetVisitorsByUUIDQuery(deviceId);
-
-  console.log("visitorData", visitorData?.data[0]);
-  const [played] = useAddPlayedMutation();
-
-  const handlePauseClick = () => {
-    dispatch(playPause(false));
+  const [addPlayed] = useAddPlayedMutation();
+  
+  // Analytics
+  const gaEventTracker = useAnalyticsEventTracker("Songs");
+  
+  // Computed values
+  const isCurrentSong = currentSong?.id === song.id;
+  const isCurrentlyPlaying = isCurrentSong && isPlaying;
+  
+  // Image URL logic optimized
+  const getImageUrl = useCallback(() => {
+    if (!onLine) return song.attributes?.cover;
+    
+    const coverData = song.attributes?.cover?.data?.[0]?.attributes;
+    if (!coverData) return null;
+    
+    const formatUrl = coverData.formats?.small?.url || coverData.formats?.thumbnail?.url;
+    return formatUrl ? `${API_FILE_URL}${formatUrl}` : `${API_FILE_URL}${coverData.url}`;
+  }, [song.attributes?.cover, onLine, API_FILE_URL]);
+  
+  // Song info optimized
+  const songInfo = {
+    title: song.attributes?.name || "Titre inconnu",
+    artist: song.attributes?.artist?.data?.attributes?.name || "Artiste inconnu",
+    album: song.attributes?.album?.data?.attributes?.name,
+    artistId: song.attributes?.artist?.data?.id,
+    albumId: song.attributes?.album?.data?.id,
   };
-
-  const handleImageLoad = (e) => {
-    setImgLoading(e);
-  };
-  const share = () => {
-    var opened = `<!DOCTYPE html>
-    <html><head>
-    <title> DiabaraTv ${song?.attributes.name}  - ${song?.attributes?.artist?.data.attributes?.name} </title>
-    <meta property="og:url"           content='https://diabara.tv'${song?.id}/>
-    <meta property="og:type"          content="website" />
-    <meta property="og:title"         content="DiabaraTv" />
-    <meta property="og:description"   content="La musique au bout des doigts" />
-    <meta property="og:image"         content="https://api.diabara.tv${song.attributes?.cover?.data[0]?.attributes?.formats?.small?.url}" />
-    </head>
-    <body>
-      <!-- Load Facebook SDK for JavaScript -->
-        <div id="fb-root"></div>
-  <script async defer crossorigin="anonymous" 
-        src="https://connect.facebook.net/en_US/sdk.js#xfbml=1
-             &version={graph-api-version}
-             &appId={your-facebook-app-id}" 
-        nonce="FOKrbAYI">
-  </script>
-      <script>
-        window.onload = function() {
-            fb_share.href ='http://www.facebook.com/share.php?u=' + encodeURIComponent(location.href); 
-        }  
-       </script>
-
-     <a href="" id="fb_share">Share this page</a>
-
-    </body>
-    </html>`;
-
-    axios({
-      url: "http://localhost:3100",
-      data: {
-        opened,
-      },
-      method: "POST",
-    }).then((rep) => {
-      window.open("http://localhost:3100");
-    });
-  };
-
-  const handlePlayClick = async () => {
-    logEvent("Song", `${song.attributes.name}`, "played");
-    dispatch(setActiveSong({ song, data, i }));
-
-    console.log("song", song);
-    const user = localStorage.getItem("auth");
-    console.log("user", user);
-    dispatch(playPause(true));
-
-    // Préparation des données pour l'API
-    const playedData = {
-      song: song.id,
-      user: JSON.parse(localStorage.getItem("auth"))?.user?.id || null,
-      visitor: visitorData?.data[0]?.id || null,
+  
+  // Event handlers
+  const handleImageLoad = useCallback(() => {
+    setImageLoaded(true);
+    setImageError(false);
+  }, []);
+  
+  const handleImageError = useCallback(() => {
+    setImageError(true);
+    setImageLoaded(false);
+  }, []);
+  
+  const handlePlayClick = useCallback(async () => {
+    try {
+      // Analytics
+      logEvent("Song", songInfo.title, "played");
+      gaEventTracker("play", songInfo.title);
+      
+      // Redux actions - nouvelle structure
+      dispatch(playSong({
+        song: {
+          id: song.id,
+          title: songInfo.title,
+          artist: songInfo.artist,
+          image: getImageUrl(),
+          preview: song.attributes?.preview_url,
+          url: song.attributes?.audio_url || song.attributes?.url,
+        },
+        queue: data || [song],
+        startIndex: index || 0,
+      }));
+      
+      // Add to recently played
+      if (user) {
+        dispatch(addToRecentlyPlayed({
+          id: song.id,
+          title: songInfo.title,
+          artist: songInfo.artist,
+          image: getImageUrl(),
+        }));
+      }
+      
+      // Track played
+      const playedData = {
+        song: song.id,
+        user: user?.id || null,
+        visitor: visitorData?.data?.[0]?.id || null,
+      };
+      
+      await addPlayed(playedData).unwrap();
+      
+    } catch (error) {
+      console.error("Erreur lors de la lecture:", error);
+    }
+  }, [song, songInfo, data, index, user, visitorData, dispatch, gaEventTracker, addPlayed, getImageUrl]);
+  
+  const handlePauseClick = useCallback(() => {
+    dispatch(playPause());
+  }, [dispatch]);
+  
+  const togglePlayPause = useCallback(() => {
+    if (isCurrentSong) {
+      handlePauseClick();
+    } else {
+      handlePlayClick();
+    }
+  }, [isCurrentSong, handlePlayClick, handlePauseClick]);
+  
+  // Share functionality improved
+  const handleShare = useCallback(() => {
+    const shareData = {
+      title: `${songInfo.title} - ${songInfo.artist}`,
+      text: `Écoutez ${songInfo.title} par ${songInfo.artist} sur DiabaraTV`,
+      url: `https://diabara.tv/songs/${song.id}`,
     };
-
- 
-
-    // Envoi des données à l'API
-    const play = await played(playedData).unwrap();
-    console.log("Données envoyées avec succès :", play);
-  };
-  const user = localStorage.getItem("auth")
-    ? JSON.parse(localStorage.getItem("auth"))
-    : null;
-
+    
+    if (navigator.share) {
+      navigator.share(shareData).catch(console.error);
+    } else {
+      // Fallback pour les navigateurs qui ne supportent pas l'API Share
+      navigator.clipboard.writeText(shareData.url);
+    }
+  }, [song.id, songInfo]);
+  
   return (
-    <div
-      className={`flex md:flex-col ${
-        detail ? detail : "md:w-[241px]"
-      }  p-4 corner bg-white/5 w-full h-[240px] md:h-full   bg-opacity-80 backdrop-blur-sm animate-slideup rounded-[2em]`}>
-      {/* {console.log('cover', song)} */}
-      <div className="relative flex md:flex-col md:h-40 w-full  h-full group ">
-        <div
-          className={`absolute md:w-full h-full inset-0 justify-center items-center bg-orange-500  bg-opacity-30  ${
-            detail ? "md:h-full" : "md:h-full"
-          } rounded-2xl group-hover:flex ${
-            activeSong?.id === song.id
-              ? "flex bg-black w-full bg-opacity-70"
-              : "hidden"
-          }`}>
-          <PlayPause
-            song={song}
-            handlePause={handlePauseClick}
-            handlePlay={handlePlayClick}
-            isPlaying={isPlaying}
-            activeSong={activeSong}
-          />
+    <div 
+      className={`
+        group relative flex md:flex-col 
+        ${detail ? "md:w-full" : "md:w-[280px]"} 
+        p-4 w-full h-[240px] md:h-[320px]
+        bg-white/5 backdrop-blur-sm 
+        hover:bg-white/10 
+        transition-all duration-300 ease-in-out
+        hover:scale-105 hover:shadow-2xl
+        rounded-2xl overflow-hidden
+        ${className}
+      `}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Image Container */}
+      <div className="relative flex md:flex-col md:h-48 w-full h-full overflow-hidden rounded-xl">
+        {/* Play Overlay */}
+        <div className={`
+          absolute inset-0 z-20
+          flex items-center justify-center
+          bg-black/40 backdrop-blur-sm
+          transition-all duration-300
+          ${(isHovered || isCurrentSong) ? 'opacity-100' : 'opacity-0'}
+          ${isCurrentSong ? 'bg-orange-500/30' : ''}
+        `}>
+          <button
+            onClick={togglePlayPause}
+            className="
+              flex items-center justify-center
+              w-16 h-16 rounded-full
+              bg-orange-500 hover:bg-orange-600
+              text-white shadow-lg
+              transform transition-all duration-200
+              hover:scale-110 active:scale-95
+            "
+            aria-label={isCurrentlyPlaying ? "Pause" : "Play"}
+          >
+            {isCurrentlyPlaying ? (
+              <MdPause size={32} />
+            ) : (
+              <MdPlayArrow size={32} />
+            )}
+          </button>
         </div>
-        {imgLoading ? (
-          <>
+        
+        {/* Loading State */}
+        {!imageLoaded && !imageError && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-gray-800/50">
             <Loader />
-            <img
-              ref={imgRef}
-              src={
-                onLine
-                  ? `https://api.diabara.tv${song.attributes?.cover?.data[0]?.attributes?.url}`
-                  : `${song.attributes.cover}`
-              }
-              className={`hidden md:w-full md:h-full object-cover ${
-                detail
-                  ? "md:w-full md:h-full w-1/2 h-1/2 rounded-2xl object-fit"
-                  : "rounded-2xl object-fit"
-              } `}
-              alt="song-img"
-              // onProgress={(e) => handleImageLoad(true)}
-              onLoad={() => handleImageLoad(false)}
-            />
-          </>
-        ) : (
-          <img
-            ref={imgRef}
-            src={
-              song.attributes?.cover?.data && onLine
-                ? song.attributes?.cover?.data[0]?.attributes?.format
-                  ? `${API_FILE_URL}${song.attributes?.cover?.data[0]?.attributes?.formats?.small?.url}`
-                  : `${API_FILE_URL}${song.attributes?.cover?.data[0].attributes?.url}`
-                : song.attributes.cover
-            }
-            className={`md:w-full md:h-full w-40 h-full  object-cover ${
-              detail ? "  rounded-2xl" : "rounded-2xl "
-            }`}
-            alt="song-img"
-            // onProgress={(e) => handleImageLoad(true)}
-            onLoad={() => handleImageLoad(false)}
-          />
+          </div>
+        )}
+        
+        {/* Image */}
+        <img
+          ref={imageRef}
+          src={getImageUrl() || "/placeholder-album.png"}
+          className={`
+            w-full h-full object-cover
+            transition-all duration-500
+            ${imageLoaded ? 'opacity-100' : 'opacity-0'}
+            ${isCurrentSong ? 'scale-105' : 'scale-100'}
+          `}
+          alt={`${songInfo.title} cover`}
+          onLoad={handleImageLoad}
+          onError={handleImageError}
+          loading="lazy"
+        />
+        
+        {/* Playing Indicator */}
+        {isCurrentlyPlaying && (
+          <div className="absolute top-2 right-2 z-30">
+            <div className="flex space-x-1">
+              <div className="w-1 h-4 bg-orange-500 animate-pulse rounded-full"></div>
+              <div className="w-1 h-3 bg-orange-400 animate-pulse rounded-full animation-delay-100"></div>
+              <div className="w-1 h-5 bg-orange-600 animate-pulse rounded-full animation-delay-200"></div>
+            </div>
+          </div>
         )}
       </div>
-      <div className="mt-2 w-full flex flex-col ">
-        <div className="w-full flex justify-center items-center">
-          <p className="font-semibold m-1 p-1 md:w-full w-32  text-ellipsis animate animate-slideleft flex  justify-center items-center gap-1 capitalize text-sm text-white truncate">
-            <MdMusicNote className="text-orange-600" />
-            <Link to={`/songs/${song?.id}`}>{song.attributes.name}</Link>
-          </p>
+      
+      {/* Content */}
+      <div className="mt-3 flex flex-col flex-1 min-w-0">
+        {/* Song Title */}
+        <div className="flex items-center justify-center mb-2">
+          <Link 
+            to={`/songs/${song.id}`}
+            className="group/link flex items-center gap-2 max-w-full"
+          >
+            <MdMusicNote className="text-orange-500 flex-shrink-0" />
+            <h3 className="
+              font-semibold text-white text-sm
+              truncate group-hover/link:text-orange-300
+              transition-colors duration-200
+            ">
+              {songInfo.title}
+            </h3>
+          </Link>
         </div>
-
-        <div className="w-full flex justify-center   items-center">
-          <p className="text-sm m-1 p-1 flex flex-col items-center gap-1 capitalize truncate text-gray-300 mt-1">
-            <BsFilePerson className="text-orange-600" />
+        
+        {/* Artist & Album Info */}
+        <div className="flex justify-center items-center gap-4 mb-3">
+          <Link
+            to={songInfo.artistId ? `/artists/${songInfo.artistId}` : "/top-artists"}
+            className="flex flex-col items-center gap-1 min-w-0 group/artist"
+          >
+            <BsFilePerson className="text-orange-500 flex-shrink-0" />
+            <span className="
+              text-xs text-gray-300 truncate max-w-[80px]
+              group-hover/artist:text-white transition-colors
+            ">
+              {songInfo.artist}
+            </span>
+          </Link>
+          
+          {songInfo.album && (
             <Link
-              to={
-                song?.attributes?.artist &&
-                song?.attributes?.artist?.data?.attributes?.name
-                  ? `/artists/${song?.attributes?.artist.data.id}`
-                  : "/top-artists"
-              }>
-              {song?.attributes?.artist?.data?.attributes.name}
+              to={songInfo.albumId ? `/albums/${songInfo.albumId}` : "/"}
+              className="flex flex-col items-center gap-1 min-w-0 group/album"
+            >
+              <IoAlbumsOutline className="text-orange-500 flex-shrink-0" />
+              <span className="
+                text-xs text-gray-300 truncate max-w-[80px]
+                group-hover/album:text-white transition-colors
+              ">
+                {songInfo.album}
+              </span>
             </Link>
-          </p>
-          <p className="text-sm m-1 p-1 flex flex-col items-center gap-1 capitalize truncate text-gray-300 mt-1">
-            {song?.attributes?.album?.data && (
-              <IoAlbumsOutline className="text-orange-600" />
-            )}
-            <Link
-              to={
-                song?.attributes?.album
-                  ? `/artists/${song?.attributes?.album?.data?.id}`
-                  : "/top-artists"
-              }>
-              {song?.attributes?.album?.data?.attributes.name}
-            </Link>
-          </p>
+          )}
         </div>
-
-        <div className="flex flex-row items-end justify-end gap-4">
-          {user && <Like song={song.id} user={user?.user?.id} />}
-          {user && <Playlist song={song.id} user={user?.user?.id} />}
-          {user && <Download song={song} user={user?.user} />}
-          {<Streams song={song.id} user={user?.user?.id} streams={streams} />}
+        
+        {/* Action Buttons */}
+        <div className="flex items-center justify-between mt-auto">
+          <div className="flex items-center gap-2">
+            {user && <Like song={song.id} user={user.id} />}
+            {user && <Download song={song} user={user} />}
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Streams 
+              song={song.id} 
+              user={user?.id} 
+              streams={streams}
+              isLoading={isStreamFetching}
+            />
+            <button
+              onClick={handleShare}
+              className="p-2 rounded-full bg-gray-700/50 hover:bg-gray-600/50 transition-colors"
+              aria-label="Partager"
+            >
+              <SocialShare
+                url={`https://diabara.tv/songs/${song.id}`}
+                image={getImageUrl()}
+                description={`${songInfo.title} par ${songInfo.artist}`}
+                title={songInfo.title}
+              />
+            </button>
+          </div>
         </div>
-        <a onClick={() => share()}>
-          <SocialShare
-            url={`https://diabara.tv/songs/${song.id}`}
-            image={`https://api.diabara.tv${song.attributes?.cover?.data && song.attributes?.cover?.data[0]?.attributes?.formats?.small?.url}`}
-            description="ex"
-            title="ex"
-          />
-        </a>
       </div>
+      
+      {/* Gradient Overlay for better text readability */}
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
     </div>
   );
-};
+});
+
+SongCard.displayName = "SongCard";
 
 export default SongCard;

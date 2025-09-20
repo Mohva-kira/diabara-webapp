@@ -1,101 +1,227 @@
-/* React-specific entry point that automatically generates
-   hooks corresponding to the defined endpoints */
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { REHYDRATE } from 'redux-persist'
+import { REHYDRATE } from 'redux-persist';
 
 const API_URL = import.meta.env.VITE_API_URL;
-console.log('api', API_URL)
 const API_KEY = import.meta.env.VITE_API_KEY;
 
-
+// Helper pour vérifier l'action de réhydratation
 function isHydrateAction(action) {
-  return action.type === REHYDRATE
+  return action.type === REHYDRATE;
 }
 
+// Configuration de base améliorée
+const baseQueryWithAuth = fetchBaseQuery({
+  baseUrl: API_URL,
+  prepareHeaders: (headers, { getState }) => {
+    headers.set("Content-Type", "application/json");
+    headers.set('Authorization', `Bearer ${API_KEY}`);
+    return headers;
+  },
+});
+
+// Wrapper pour gérer les erreurs et retry
+const baseQueryWithRetry = async (args, api, extraOptions) => {
+  let result = await baseQueryWithAuth(args, api, extraOptions);
+  
+  // Retry une fois en cas d'erreur réseau
+  if (result.error && result.error.status === 'FETCH_ERROR') {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    result = await baseQueryWithAuth(args, api, extraOptions);
+  }
+  
+  return result;
+};
 
 export const songsApi = createApi({
   reducerPath: "diabaraTvApi",
-  baseQuery: fetchBaseQuery({ baseUrl: API_URL }),
-  prepareHeaders: (headers) => {
-    headers.set("Content-Type", "application/json")
-    headers.set('Authorization', `${API_KEY}`)
-
-  },
-
+  baseQuery: baseQueryWithRetry,
+  tagTypes: ['Song', 'Artist', 'Playlist', 'Search'],
+  
   extractRehydrationInfo(action, { reducerPath }) {
     if (isHydrateAction(action)) {
-      // when persisting the api reducer
-      // When persisting the root reducer
-      return action.payload[api.reducerPath]
+      return action.payload?.[reducerPath];
     }
   },
+  
   endpoints: (builder) => ({
-    // The `getPosts` endpoint is a "query" operation that returns data
+    // Endpoint principal avec pagination et filtres
     getSongs: builder.query({
-      // The URL for the request is '/fakeApi/posts'
-      query: () => "/songs?populate=*&pagination[pageSize]=1000",
-      async onQueryStarted(
-        arg,
-        {
-          dispatch,
-          getState,
-          extra,
-          requestId,
-          queryFulfilled,
-          getCacheEntry,
-          updateCachedData,
-        },
-      ) {},
+      query: ({ page = 1, pageSize = 20, genre, country, sortBy = 'createdAt:desc' } = {}) => {
+        const params = {
+          populate: '*',
+          'pagination[page]': page,
+          'pagination[pageSize]': pageSize,
+          'sort[0]': sortBy,
+        };
+
+        if (genre) params['filters[genre][$eq]'] = genre;
+        if (country) params['filters[country][$eq]'] = country;
+
+        return {
+          url: '/songs',
+          params,
+        };
+      },
+      providesTags: (result) =>
+        result?.data
+          ? [
+              ...result.data.map(({ id }) => ({ type: 'Song', id })),
+              { type: 'Song', id: 'LIST' },
+            ]
+          : [{ type: 'Song', id: 'LIST' }],
+      keepUnusedDataFor: 300, // 5 minutes de cache
     }),
+
+    // Détails d'une chanson
     getSongDetails: builder.query({
-      // The URL for the request is '/fakeApi/posts'
-      query: (songid) => "/songs/" + songid + "/?populate=*",
+      query: (songId) => ({
+        url: `/songs/${songId}`,
+        params: { populate: '*' },
+      }),
+      providesTags: (result, error, songId) => [{ type: 'Song', id: songId }],
+      keepUnusedDataFor: 600, // 10 minutes de cache pour les détails
     }),
-    getSongByName: builder.query({
-      // The URL for the request is '/fakeApi/posts'
-      query: (name) => "/songs?populate=*&filters[$or][0][name][$contains]" + name + "&filters[$or][1][artist][name][$contains]=" + name,
+
+    // Recherche optimisée
+    searchSongs: builder.query({
+      query: (searchTerm) => {
+        if (!searchTerm || searchTerm.length < 2) {
+          return { url: '/songs', params: { 'pagination[pageSize]': 0 } };
+        }
+
+        return {
+          url: '/songs',
+          params: {
+            populate: '*',
+            'filters[$or][0][name][$containsi]': searchTerm,
+            'filters[$or][1][artist][name][$containsi]': searchTerm,
+            'filters[$or][2][album][$containsi]': searchTerm,
+            'pagination[pageSize]': 50,
+          },
+        };
+      },
+      providesTags: ['Search'],
+      keepUnusedDataFor: 60, // Cache court pour les recherches
     }),
-    
-    getSongRelated: builder.query({
-      // The URL for the request is '/fakeApi/posts'
-      query: (artisteid) => "songs?filters[artist][id][$eq]=" + artisteid,
+
+    // Chansons par artiste (correction du nom pour correspondre aux imports)
+    getSongsByArtist: builder.query({
+      query: (artistId) => ({
+        url: '/songs',
+        params: {
+          populate: '*',
+          'filters[artist][id][$eq]': artistId,
+          'pagination[pageSize]': 100,
+        },
+      }),
+      providesTags: (result, error, artistId) => [
+        { type: 'Artist', id: artistId },
+        { type: 'Song', id: 'LIST' },
+      ],
     }),
+
+    // Alias pour compatibilité avec l'ancien nom
     getSongByArtist: builder.query({
-      // The URL for the request is '/fakeApi/posts'
-      query: (artisteid) => "songs?filters[artist][id][$eq]=" + artisteid,
+      query: (artistId) => ({
+        url: '/songs',
+        params: {
+          populate: '*',
+          'filters[artist][id][$eq]': artistId,
+          'pagination[pageSize]': 100,
+        },
+      }),
+      providesTags: (result, error, artistId) => [
+        { type: 'Artist', id: artistId },
+        { type: 'Song', id: 'LIST' },
+      ],
     }),
-    getSongByCountry: builder.query({
-      // The URL for the request is '/fakeApi/posts'
-      query: (countryCode) => "/songs?fields[0]=ville" + countryCode +"populate=*", 
+
+    // Recherche par nom (pour compatibilité)
+    getSongByName: builder.query({
+      query: (songName) => ({
+        url: '/songs',
+        params: {
+          populate: '*',
+          'filters[name][$containsi]': songName,
+          'pagination[pageSize]': 50,
+        },
+      }),
+      providesTags: ['Search'],
+      keepUnusedDataFor: 60,
     }),
-    getSongsByGenre: builder.query({
-      // The URL for the request is '/fakeApi/posts'
-      query: (genre) => "all.php?genre=" + genre,
-    }),
+
+    // Recherche générale (alias pour searchSongs)
     getSongsBySearch: builder.query({
-      // The URL for the request is '/fakeApi/posts'
-      query: (searchTerm) => "all.php?search=" + searchTerm,
+      query: (searchTerm) => {
+        if (!searchTerm || searchTerm.length < 2) {
+          return { url: '/songs', params: { 'pagination[pageSize]': 0 } };
+        }
+
+        return {
+          url: '/songs',
+          params: {
+            populate: '*',
+            'filters[$or][0][name][$containsi]': searchTerm,
+            'filters[$or][1][artist][name][$containsi]': searchTerm,
+            'filters[$or][2][album][$containsi]': searchTerm,
+            'pagination[pageSize]': 50,
+          },
+        };
+      },
+      providesTags: ['Search'],
+      keepUnusedDataFor: 60,
     }),
+
+    // Chansons par genre
+    getSongsByGenre: builder.query({
+      query: (genre) => ({
+        url: '/songs',
+        params: {
+          populate: '*',
+          'filters[genre][$eq]': genre,
+          'pagination[pageSize]': 100,
+        },
+      }),
+      providesTags: ['Song'],
+    }),
+
+    // Upload de chanson
     addSong: builder.mutation({
-      // The URL for the request is '/fakeApi/posts'
-      query: (data) =>( {
-        url: 'upload',
-        body: data,
+      query: (formData) => ({
+        url: '/upload',
         method: 'POST',
-         
-      })
+        body: formData,
+      }),
+      invalidatesTags: [{ type: 'Song', id: 'LIST' }],
+    }),
+
+    // Recommandations personnalisées
+    getRecommendations: builder.query({
+      query: (userId) => ({
+        url: '/songs/recommendations',
+        params: {
+          populate: '*',
+          userId,
+          'pagination[pageSize]': 20,
+        },
+      }),
+      keepUnusedDataFor: 180, // 3 minutes pour les recommandations
     }),
   }),
 });
 
+// Export des hooks générés (avec tous les nouveaux endpoints)
 export const {
   useGetSongsQuery,
-  useGetSongByNameQuery,
+  useLazyGetSongsQuery,
   useGetSongDetailsQuery,
-  useGetSongRelatedQuery,
-  useGetSongByCountryQuery,
+  useSearchSongsQuery,
+  useLazySearchSongsQuery,
+  useGetSongsByArtistQuery,
+  useGetSongByArtistQuery, // Nouveau
+  useGetSongByNameQuery,   // Nouveau
+  useGetSongsBySearchQuery, // Nouveau
   useGetSongsByGenreQuery,
-  useGetSongsBySearchQuery,
   useAddSongMutation,
-  useGetSongByArtistQuery,
+  useGetRecommendationsQuery,
 } = songsApi;
