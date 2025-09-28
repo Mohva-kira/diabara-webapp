@@ -11,6 +11,14 @@ import Features from './Features';
 import Adhesion from './Adhesion';
 import ArtistAccount from './artist/ArtistAccount';
 import Pricing from './Pricing';
+import CGU from './CGU';
+import Confidentialite from './Confidentialite';
+import Favourites from './Favourites';
+import Payment from './Payment';
+import Profile from './Profile';
+import RequireAuth from './../components/RequireAuth';
+import RequireSub from './../components/RequireSub';
+import Video from './Video';
 
 
 export {
@@ -27,4 +35,12 @@ export {
   Adhesion,
   ArtistAccount,
   Pricing,
+  CGU,
+  Confidentialite, 
+  Favourites,
+  Payment,
+  Profile,
+  RequireAuth,
+  RequireSub,
+  Video,
 };

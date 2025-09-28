@@ -240,7 +240,7 @@ const Download = ({ song, artist, stream }) => {
         location: "Bamako",
       };
       await postDownload(JSON.stringify({ data })).then((rep) => {
-        console.log("Downloadded");
+        // console.log("Downloadded");
 
         if (rep.data) refetch();
       });
@@ -256,9 +256,9 @@ const Download = ({ song, artist, stream }) => {
     if (isDownloaded && indexedSongs) {
       const found = indexedSongs.find((item) => item?.id === isDownloaded?.id);
       if (!found) {
-        console.log(
-          "Song is downloaded but not in indexedSongs. Adding to db.songs..."
-        );
+        // console.log(
+        //   "Song is downloaded but not in indexedSongs. Adding to db.songs..."
+        // );
         const result = {
           name: song.attributes.name,
           audio: song.attributes.audio?.data.attributes.url,

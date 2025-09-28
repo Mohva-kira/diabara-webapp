@@ -120,7 +120,7 @@ const Introduction = ({
     };
 
     postFavorite(favData).then((res) => {
-      console.log("fav enregistrer", res);
+      // console.log("fav enregistrer", res);
     });
 
     setIsVisited(!isVisited);
@@ -437,7 +437,7 @@ const Introduction = ({
   );
   const contents = [welcomeSlide, preferences, CGU, register];
 
-  console.log("prefs", prefs, prefsArtists);
+  // console.log("prefs", prefs, prefsArtists);
   return (
     <div
       className="relative z-10 h-screen"

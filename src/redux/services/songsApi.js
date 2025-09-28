@@ -35,19 +35,8 @@ export const songsApi = createApi({
     // The `getPosts` endpoint is a "query" operation that returns data
     getSongs: builder.query({
       // The URL for the request is '/fakeApi/posts'
-      query: () => "/songs?populate=*&pagination[pageSize]=1000",
-      async onQueryStarted(
-        arg,
-        {
-          dispatch,
-          getState,
-          extra,
-          requestId,
-          queryFulfilled,
-          getCacheEntry,
-          updateCachedData,
-        },
-      ) { },
+      query: (pageAndSize) => `/songs?populate=*&pagination[page]=${pageAndSize.page}&pagination[pageSize]=${pageAndSize.size}`,
+
     }),
     getSongDetails: builder.query({
       // The URL for the request is '/fakeApi/posts'
@@ -136,6 +125,7 @@ export const songsApi = createApi({
 
 export const {
   useGetSongsQuery,
+  useLazyGetSongsQuery,
   useGetSongByNameQuery,
   useGetSongDetailsQuery,
   useGetSongRelatedQuery,

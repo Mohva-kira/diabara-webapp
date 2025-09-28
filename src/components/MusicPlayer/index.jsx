@@ -20,7 +20,8 @@ import Streams from "../Streams";
 
 const MusicPlayer = ({ setIsVisible }) => {
   const { activeSong, currentSongs, currentIndex, isActive, isPlaying } =
-    useSelector((state) => state.player);
+    useSelector((state) => state.player) || {};
+  console.log("Active Song", activeSong);
   const [duration, setDuration] = useState(0);
   const [seekTime, setSeekTime] = useState(0);
   const [appTime, setAppTime] = useState(0);
@@ -76,13 +77,13 @@ const MusicPlayer = ({ setIsVisible }) => {
   navigator.mediaSession.setActionHandler("previoustrack", handlePrevSong);
   navigator.mediaSession.setActionHandler("seekto", () => seekTime);
   navigator.mediaSession.metadata = new MediaMetadata({
-    title: activeSong.attributes?.name,
-    artist: activeSong.attributes.artist?.data?.attributes?.name,
+    title: activeSong?.attributes?.name,
+    artist: activeSong?.attributes?.artist?.data?.attributes?.name,
     artwork: [
       {
         src:
           "https://api.diabara.tv" +
-          activeSong.attributes.cover?.data[0]?.attributes?.url,
+          activeSong?.attributes?.cover?.data[0]?.attributes?.url,
       },
     ],
   });

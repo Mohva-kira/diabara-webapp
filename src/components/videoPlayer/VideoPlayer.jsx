@@ -22,7 +22,7 @@ const VideoPlayer = ({ id }) => {
   //extract data from redirection navigate(`/video/${id}`, { state: { data: data } });
   const [videos, setVideos] = useState();
   const { state } = useLocation();
-  const { data } = state;
+  const { data } = state || {};
   console.log("id video player", id);
 
   console.log("data video player", data);

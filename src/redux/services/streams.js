@@ -44,7 +44,7 @@ export const streamsApi = createApi({
       }),
     }),
 
-       getStreamsByArtist: builder.query({
+    getStreamsByArtist: builder.query({
       // The URL for the request is '/fakeApi/posts'
       query: (artisteid) => "streams?populate=*&filters[song][artist][id][$eq]=" + artisteid,
     }),

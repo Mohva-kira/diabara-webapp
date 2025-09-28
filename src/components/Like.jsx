@@ -10,6 +10,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { HiOutlineHeart } from "react-icons/hi";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../db/db";
+import { set } from "react-ga";
 
 const Like = ({ user, song }) => {
   const [post, { isFetching: fetchingPost }] = usePostLikeMutation();
@@ -18,6 +19,8 @@ const Like = ({ user, song }) => {
   const [indexedLikes, setIndexedLikes] = useState(
     useLiveQuery(() => db.likes.toArray())
   );
+
+  const [isLiked, setIsLiked] = useState()
 
   const { data: likes, isLoading, isFetching, refetch } = useGetLikesQuery();
 
@@ -37,26 +40,16 @@ const Like = ({ user, song }) => {
     }
   }
 
-  const isLiked = likes
-    ? likes?.data.find(
-        (like) =>
-          like?.attributes?.user?.data?.id === user &&
-          like?.attributes?.song?.data.id === song
-      )
-    : indexedLikes?.find(
-        (like) =>
-          like?.attributes?.user?.data?.id === 1 &&
-          like?.attributes?.song?.data.id === song
-      );
-
+ 
   const send = async () => {
     const data = { user, song };
-
+    setIsLiked(true)
+    
     if (!user) toast.error("Vous devez être connecter");
     try {
       await post(JSON.stringify({ data })).then((rep) => {
-        console.log("like rep", rep);
-        toast.success("👍🏾");
+        // console.log("like rep", rep);
+        toast.success("Favoris enrégistré 👍🏾");
       });
 
       refetch();
@@ -83,7 +76,15 @@ const Like = ({ user, song }) => {
           addLikes(data);
         });
       }
+
+     
     }
+
+    setIsLiked(likes?.data?.find(
+      (like) =>
+        like?.attributes?.user?.data?.id === 1 &&
+        like?.attributes?.song?.data.id === song
+    ))
   }, [likes]);
 
   return (

@@ -9,7 +9,7 @@ const Track = ({ isPlaying, isActive, activeSong }) => {
     logEvent(
       "song",
       "song played",
-      `${activeSong?.attributes.name} - ${activeSong?.attributes?.artist.data.attributes.name}`
+      `${activeSong?.attributes?.name} - ${activeSong?.attributes?.artist?.data?.attributes?.name}`
     );
   }, [activeSong]);
 
@@ -20,7 +20,7 @@ const Track = ({ isPlaying, isActive, activeSong }) => {
         <img
           src={
             onLine
-              ? `${API_FILE_URL}${activeSong?.attributes.cover.data[0].attributes.url}`
+              ? `${API_FILE_URL}${activeSong?.attributes?.cover?.data[0]?.attributes?.url}`
               : activeSong?.attributes.cover
           }
           alt="cover art"

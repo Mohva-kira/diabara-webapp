@@ -10,7 +10,7 @@ const SearchResCard = (item, detail) => {
   const dispatch = useDispatch();
   const { thumbnails, title, channelTitle, publishTime } = item?.item?.snippet || {};
   const { id } = item?.item || {};
-  console.log("item", item);
+  // console.log("item", item);
   const { videoId, kind } = id || {};
   const dlUrl = import.meta.env.VITE_DL_SERVER;
   
@@ -74,6 +74,7 @@ const SearchResCard = (item, detail) => {
         url: `https://www.youtube.com/watch?v=${id}`,
         title: title,
         videoId: videoId,
+        id: videoId,
       });
       
       if (response.data) {

@@ -1,184 +1,249 @@
-import { useEffect, useState } from "react";
-import ReactGA from "react-ga4";
-import { useSelector } from "react-redux";
-import { Route, Routes, useLocation } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import {
-  Header,
-  MusicPlayer,
-  RequireAuth,
-  Sidebar,
-  TopPlay,
-} from "./components";
-import {
-  AddSong,
-  Adhesion,
-  AroundYou,
-  ArtistAccount,
-  ArtistDetails,
-  Auth,
-  Discover,
-  Features,
-  Pricing,
-  Search,
-  SongDetails,
-  TopArtists,
-  TopCharts,
-} from "./pages";
+import React, { useEffect, useState, useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import { useLocation, Routes, Route } from 'react-router-dom';
+import { useReactPWAInstall, ReactPWAInstallProvider } from 'react-pwa-install';
+import ReactGA from 'react-ga4';
+import { initGA, logEvent, logPageView } from './analytics';
+import myLogo from './assets/logo.png';
 
-import { HelmetProvider } from "react-helmet-async";
-import { BsFileMusicFill } from "react-icons/bs";
-import ReactPWAInstallProvider, { useReactPWAInstall } from "react-pwa-install";
-import "react-toastify/dist/ReactToastify.css";
-import { initGA, logEvent, logPageView } from "./analytics";
-import RequireSub from "./components/RequireSub";
-import CGU from "./pages/CGU";
-import Confidentialite from "./pages/Confidentialite";
-import Favourites from "./pages/Favourites";
-import Payment from "./pages/Payment";
-import Profile from "./pages/Profile";
-import Video from "./pages/Video";
+// Import des composants
+import { 
+  Discover, Auth, Features, AddSong, TopArtists, TopCharts, 
+  AroundYou, Adhesion, CGU, Confidentialite, Favourites, 
+  ArtistDetails, ArtistAccount, Video, Profile, Payment, 
+  SongDetails, Search, Pricing, RequireAuth, RequireSub 
+} from './pages';
+import { Header, MusicPlayer, Searchbar, Sidebar, TopPlay } from './components';
+import { ToastContainer } from 'react-toastify';
 
 const App = () => {
   const { pwaInstall, supported, isInstalled } = useReactPWAInstall();
-  const [isVisible, setIsVisible] = useState(false);
-
-  ReactGA.initialize("G-YQKY9V1351");
-
-  const handleClick = () => {
-    pwaInstall({
-      title: "Install Web App",
-      logo: myLogo,
-      features: (
-        <ul>
-          <li>Cool feature 1</li>
-          <li>Cool feature 2</li>
-          <li>Even cooler feature</li>
-          <li>Works offline</li>
-        </ul>
-      ),
-      description: "This is a very good app that does a lot of useful stuff. ",
-    })
-      .then(() =>
-        alert("App installed successfully or instructions for install shown")
-      )
-      .catch(() => alert("User opted out from installing"));
-  };
+  const [isVisible, setIsVisible] = useState(true);
+  const [playerMinimized, setPlayerMinimized] = useState(false);
 
   const { activeSong } = useSelector((state) => state.player);
-  //  console.log('api', process.env.REACT_APP_API_URL)
-  let url = useLocation();
-  const isCompleted = window.location;
+  const location = useLocation();
 
-  useEffect(() => {
-    setIsVisible(true);
-  }, [activeSong]);
+  console.log('activeSong:', activeSong);
 
-  useEffect(() => {
-    initGA();
+  // Configuration PWA
+  const PWA_CONFIG = {
+    title: "Install Web App",
+    logo: myLogo,
+    features: (
+      <ul>
+        <li>Cool feature 1</li>
+        <li>Cool feature 2</li>
+        <li>Even cooler feature</li>
+        <li>Works offline</li>
+      </ul>
+    ),
+    description: "This is a very good app that does a lot of useful stuff."
+  };
 
-    logEvent("Page", "View", "Home Page ");
-    const onPageLoad = () => {
-      console.log("page loaded");
-      url = window.location.href;
-
-      // do something else
-    };
-    // Check if the page has already loaded
-    if (document.readyState === "complete") {
-      onPageLoad();
-
-      logPageView();
-    } else {
-      window.addEventListener("load", onPageLoad, false);
-      // Remove the event listener when component unmounts
-      return () => window.removeEventListener("load", onPageLoad);
+  // Gestionnaire d'installation PWA
+  const handlePWAInstall = useCallback(async () => {
+    try {
+      await pwaInstall(PWA_CONFIG);
+      console.log("App installed successfully or instructions shown");
+      logEvent("PWA", "Install", "Success");
+    } catch (error) {
+      console.log("User opted out from installing");
+      logEvent("PWA", "Install", "Cancelled");
     }
+  }, [pwaInstall]);
+
+  // Initialisation Google Analytics
+  useEffect(() => {
+    ReactGA.initialize("G-YQKY9V1351");
+    initGA();
+    logEvent("Page", "View", "Home Page");
   }, []);
 
-  // alert(window.screen.width)
-  // console.log('pwaaaa', isInstalled, supported)
- 
-  const helmetContext = {};
+  // Suivi des changements de page
+  useEffect(() => {
+    logPageView();
+    logEvent("Navigation", "Route Change", location.pathname);
+  }, [location.pathname]);
+
+  // Gestionnaire de chargement de page
+  useEffect(() => {
+    const handlePageLoad = () => {
+      console.log("Page loaded:", window.location.href);
+      logEvent("Performance", "Page Load", "Complete");
+    };
+
+    if (document.readyState === "complete") {
+      handlePageLoad();
+    } else {
+      window.addEventListener("load", handlePageLoad, { once: true });
+    }
+
+    return () => {
+      window.removeEventListener("load", handlePageLoad);
+    };
+  }, []);
+
+  // Gestion de la visibilité du lecteur
+  useEffect(() => {
+    if (activeSong) {
+      setIsVisible(true);
+      setPlayerMinimized(false); // Réinitialiser si nouvelle chanson
+    }
+  }, [activeSong]);
+
+  // Fonctions de gestion du lecteur
+  const togglePlayerVisibility = () => {
+    setPlayerMinimized(!playerMinimized);
+    logEvent("Player", "Toggle", playerMinimized ? "Show" : "Hide");
+  };
+
+  const hidePlayer = () => {
+    setPlayerMinimized(true);
+    logEvent("Player", "Action", "Hide");
+  };
+
+  const showPlayer = () => {
+    setPlayerMinimized(false);
+    logEvent("Player", "Action", "Show");
+  };
 
   return (
     <div className="relative flex">
-      <HelmetProvider context={helmetContext}>
+      {/* Navigation */}
+      
         <Sidebar />
+      
         <ToastContainer />
-        <div className="flex-1 flex flex-col bg-gradient-to-br from-black to-[#121286]">
-          <Header />
+      {/* Contenu principal */}
+      <div className="flex-1 flex flex-col bg-gradient-to-br from-black to-[#121286]">
+        {/* Header */}
+        <Header />
 
-          <div className="px-2 overflow-y-scroll hide-scrollbar flex flex-col-reverse xl:flex-row h-[calc(100vh-100px)] sm:h-[calc(100vh-70px)]">
-            {supported && !isInstalled && (
-              <div onClick={handleClick}>Install App</div>
-            )}
-            <div className="flex-1 h-fit pb-0 px-2">
-              <ReactPWAInstallProvider enableLogging>
-                <Routes>
-                  <Route path="/" element={<Discover />} />
-                  <Route path="/login" element={<Auth />} />
-                  <Route path="/blog/features" element={<Features />} />
-                  <Route path="/songs/add" element={<AddSong />} />
-                  <Route path="/top-artists" element={<TopArtists />} />
-                  <Route path="/top-charts" element={<TopCharts />} />
-                  <Route path="/around-you" element={<AroundYou />} />
-                  <Route path="/adhesion" element={<Adhesion />} />
-                  <Route path="/terms-of-service" element={<CGU />} />
-                  <Route path="/privacy-policy" element={<Confidentialite />} />
-                  <Route element={<RequireAuth />}>
-                    <Route element={<RequireSub />}>
-                      <Route path="/favourites" element={<Favourites />} />
-                      <Route path="/artists/:id" element={<ArtistDetails />} />
-                      <Route path="/artist/:id" element={<ArtistAccount />} />
-                      <Route path="/video/:id" element={<Video />} />
-                    </Route>
-                    <Route path="/profile/:id" element={<Profile />} />
-                    <Route path="/payment" element={<Payment />} />
-                    <Route path="/payment/:type" element={<Payment />} />
+        {/* Zone de contenu avec scrolling */}
+        <div className="px-2 overflow-y-scroll hide-scrollbar flex flex-col-reverse xl:flex-row h-[calc(100vh-40px)] sm:h-[calc(100vh-70px)]">
+          
+          {/* Bouton d'installation PWA */}
+          {supported && !isInstalled && (
+            <button 
+              onClick={handlePWAInstall}
+              className="fixed top-4 right-4 z-50 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg transition-colors"
+            >
+              Install App
+            </button>
+          )}
+
+          {/* Routes principales */}
+          <div className="flex-1 h-fit pb-0 px-2">
+            <ReactPWAInstallProvider enableLogging>
+              <Routes>
+                <Route path="/" element={<Discover />} />
+                <Route path="/login" element={<Auth />} />
+                <Route path="/blog/features" element={<Features />} />
+                <Route path="/songs/add" element={<AddSong />} />
+                <Route path="/top-artists" element={<TopArtists />} />
+                <Route path="/top-charts" element={<TopCharts />} />
+                <Route path="/around-you" element={<AroundYou />} />
+                <Route path="/adhesion" element={<Adhesion />} />
+                <Route path="/terms-of-service" element={<CGU />} />
+                <Route path="/privacy-policy" element={<Confidentialite />} />
+                
+                {/* Routes protégées */}
+                <Route element={<RequireAuth />}>
+                  <Route element={<RequireSub />}>
+                    <Route path="/favourites" element={<Favourites />} />
+                    <Route path="/artists/:id" element={<ArtistDetails />} />
+                    <Route path="/artist/:id" element={<ArtistAccount />} />
+                    <Route path="/video/:id" element={<Video />} />
                   </Route>
+                  <Route path="/profile/:id" element={<Profile />} />
+                  <Route path="/payment" element={<Payment />} />
+                  <Route path="/payment/:type" element={<Payment />} />
+                </Route>
 
-                  <Route path="/songs/:songid" element={<SongDetails />} />
-                  <Route path="/search/:searchTerm" element={<Search />} />
-                  <Route path="/pricing" element={<Pricing />} />
-                  <Route
-                    path="/politique-confidentialite"
-                    element={<Confidentialite />}
-                  />
-                </Routes>
-              </ReactPWAInstallProvider>
-            </div>
-            <div className="xl:sticky relative top-0 h-fit">
-              {url.pathname.includes("/blog") ||
-              url.pathname.includes("/login") ||
-              url.pathname.includes("/artist") ||
-              url.pathname.includes("/adhesion") ||
-              url.pathname.includes("/politique-confidentialite") ||
-              url.pathname.includes("/terms-of-service") ||
-              url.pathname.includes("/payment") ? null : (
-                <TopPlay />
-              )}
-            </div>
+                <Route path="/songs/:songid" element={<SongDetails />} />
+                <Route path="/search/:searchTerm" element={<Search />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/politique-confidentialite" element={<Confidentialite />} />
+              </Routes>
+            </ReactPWAInstallProvider>
+          </div>
+
+          {/* Zone latérale droite */}
+          <div className="xl:sticky relative top-0 h-fit">
+            {!location.pathname.includes("/blog") && (
+              <TopPlay />
+            )}
           </div>
         </div>
 
-        {activeSong?.attributes?.name && (
-          <div
-            className={`${
-              isVisible ? "flex flex-col" : "hidden"
-            } fixed bottom-0 left-0 right-0 w-full  z-50 items-center justify-between px-6 backdrop-blur-md bg-gradient-to-r from-[#1c1c6e] via-[#2e2e88] to-[#3a3a9c] rounded-t-3xl shadow-2xl`}>
-            <MusicPlayer setIsVisible={setIsVisible} />
-
-            {!isVisible && (
-              <div
-                onClick={() => setIsVisible(true)}
-                className="fixed bottom-10 right-12 z-50 text-white text-3xl cursor-pointer">
-                <BsFileMusicFill />
-              </div>
-            )}
+        {/* Lecteur de musique avec gestion de visibilité */}
+        {isVisible && activeSong?.attributes?.name && (
+          <div className={`
+            transition-all duration-300 ease-in-out 
+            h-52
+            fixed bottom-0 left-0 right-0 w-full  z-50 items-center justify-between px-6 backdrop-blur-md bg-gradient-to-r from-[#1c1c6e] via-[#2e2e88] to-[#3a3a9c] rounded-t-3xl shadow-2xl
+            ${playerMinimized 
+              ? 'transform translate-y-full opacity-0 pointer-events-none' 
+              : 'transform translate-y-0 opacity-100'
+            }
+          `}>
+            <MusicPlayer 
+              onMinimize={hidePlayer}
+              onToggle={togglePlayerVisibility}
+              setIsVisible={hidePlayer}
+            />
           </div>
         )}
-      </HelmetProvider>
+
+        {/* Icône flottante pour réafficher le lecteur */}
+        {isVisible && activeSong?.attributes?.name && playerMinimized && (
+          <button
+            onClick={showPlayer}
+            className="fixed bottom-6 right-6 h-24 z-50 bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 group"
+            aria-label="Afficher le lecteur de musique"
+          >
+            {/* Icône de musique */}
+            <svg 
+              className="w-6 h-6" 
+              fill="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+            </svg>
+            
+            {/* Animation d'onde sonore */}
+            <div className="absolute -top-1 -right-1 flex space-x-0.5">
+              <div className="w-1 h-1 bg-white rounded-full animate-pulse"></div>
+              <div className="w-1 h-2 bg-white rounded-full animate-pulse delay-100"></div>
+              <div className="w-1 h-1 bg-white rounded-full animate-pulse delay-200"></div>
+            </div>
+
+            {/* Tooltip */}
+            <div className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-black/80 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              Afficher le lecteur
+              <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black/80"></div>
+            </div>
+          </button>
+        )}
+
+        {/* Indicateur de chanson en cours (version minimale) */}
+        {isVisible && activeSong?.attributes?.name && playerMinimized && (
+          <div className="fixed bottom-6 left-6 z-40 bg-black/80 h-10 backdrop-blur-sm text-white px-4 py-2 rounded-lg shadow-lg max-w-xs">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-violet-500 to-purple-500 rounded flex-shrink-0 flex items-center justify-center">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium truncate">{activeSong.title}</p>
+                <p className="text-xs text-gray-300 truncate">{activeSong.subtitle}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

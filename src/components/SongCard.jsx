@@ -130,15 +130,43 @@ const SongCard = ({
           ? `${API_FILE_URL}${song.attributes?.cover?.data[0]?.attributes?.formats?.small?.url}`
           : `${API_FILE_URL}${song.attributes?.cover?.data[0]?.attributes?.url}`
         : song.attributes.cover;
+        /* console.log("imageUrl", imageUrl); 
+        
+            className={`absolute inset-0  w-[100px] h-[100px]  ${detail ? "rounded-2xl" : "rounded-2xl"} flex items-center justify-center transition-opacity duration-200
+        ${activeSong?.id === song.id ? "opacity-100 bg-orange-500 bg-opacity-40" : "opacity-0 group-hover:opacity-100 bg-orange-500 bg-opacity-20"}
+        md:rounded-2xl rounded-full pointer-events-none`}
+        
+        */
 
     return (
+      <div
+      className={`md:w-full md:h-full object-contain w-full h-full  flex justify-center items-center rounded-full md:rounded-2xl ${detail ? "rounded-2xl" : "rounded-2xl"}`}
+    >
+    
+      <div className="pointer-events-auto relative shadow-md md:h-full rounded-full md:w-3/4  h-3/4 hover:bg-orange-500 p-2 bg-black bg-opacity-50 shadow-white/70">
       <img
         ref={imgRef}
         src={imageUrl}
-        className={`md:w-full md:h-full object-contain w-[100px] h-[100px]  rounded-full md:rounded-2xl ${detail ? "rounded-2xl" : "rounded-2xl"}`}
+        className={`md:w-full md:h-full w-full h-full  object-cover   rounded-full  ${detail ? "rounded-2xl" : "rounded-2xl"}`}
         alt="song-img"
         onLoad={handleImageLoad}
       />
+
+      <div className={`absolute inset-0  rounded-full flex items-center justify-center transition-opacity duration-200
+        ${activeSong?.id === song.id ? "opacity-100 bg-orange-500 bg-opacity-40" : "opacity-0 group-hover:opacity-100 bg-orange-500 bg-opacity-20"} `}>
+      <PlayPause
+          song={song}
+          handlePause={handlePauseClick}
+          handlePlay={handlePlayClick}
+          isPlaying={isPlaying}
+          activeSong={activeSong}
+        />
+      </div>
+      
+       
+      </div>
+    </div>
+     
     );
   };
 
@@ -152,23 +180,22 @@ const SongCard = ({
   };
 
   const handleClick = () => {
+    console.log("count", count);
+     counter()
     isPlaying ?? handlePauseClick();
   };
 
   const handlePlayClickWithCounter = useCallback(() => {
-    if (count <= 1) {
-      counter();
-      console.log("count", count);
-    } else {
+
       handleClick();
-    }
+    
   });
 
   return (
     <div onClick={handlePlayClickWithCounter} className={`h-full  `}>
       <div
         className={`flex md:flex-col ${isDetails ? "  md:h-[541px]" : "md:w-[241px]"} md:p-4 corner bg-white/5 w-full md:h-[350px] bg-opacity-80 h-32  backdrop-blur-sm animate-slideup rounded-[2em]`}>
-        {count < 1 ? (
+        {count > 2 ? (
           <a
             href="https://www.effectiveratecpm.com/dk6epffzw?key=d70309a31870584c5914e216f01fb799"
             target="_blank"
@@ -240,23 +267,10 @@ const SongCard = ({
             </div>
           </a>
         ) : (
-          <div className={`"relative  rounded-full md:rounded-none px-4 flex md:flex-col  md:w-full group" ${ isDetails ? "md:h-[541px]" : "h-24" }`}>
+          <div className={`"relative   rounded-full md:rounded-none px-4 flex md:flex-col  md:w-full group" ${ isDetails ? "md:h-[541px]" : "h-24" }`}>
             {renderImage()}
-            <div
-              className={`absolute inset-0 h-full flex items-center justify-center transition-opacity duration-200
-                ${activeSong?.id === song.id ? "opacity-100 bg-black bg-opacity-40" : "opacity-0 group-hover:opacity-100 bg-black bg-opacity-20"}
-                md:rounded-2xl rounded-full pointer-events-none`}>
-              <div className="pointer-events-auto shadow-md rounded-full md:rounded-2xl p-2 bg-black bg-opacity-50 shadow-white/70">
-                <PlayPause
-                  song={song}
-                  handlePause={handlePauseClick}
-                  handlePlay={handlePlayClick}
-                  isPlaying={isPlaying}
-                  activeSong={activeSong}
-                />
-              </div>
-            </div>
-            <div className="relative w-full h-full flex justify-center items-center"></div>
+          
+            {/* <div className="relative w-full h-full flex justify-center items-center"></div> */}
 
             <div className="md:mt-2 w-full flex flex-col justify-around">
               <div className="w-full flex justify-center items-center">
@@ -294,10 +308,11 @@ const SongCard = ({
                 Like={Like}
                 Playlist={Playlist}
                 Download={Download}
+                showDownload={false}
                 StreamsComponent={Streams}
                 className="mt-2"
              />
-              <a className="md:block hidden" onClick={share}>
+              <a className="md:block hidden mt-4" onClick={share}>
                 <SocialShare
                   url={`https://diabara.tv/songs/${song.id}`}
                   image={`https://api.diabara.tv${song.attributes?.cover?.data[0]?.attributes?.formats?.small?.url}`}

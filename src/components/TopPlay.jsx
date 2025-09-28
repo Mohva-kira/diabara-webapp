@@ -155,7 +155,7 @@ const TopPlay = () => {
   }, [artistData, songData]);
 
   useEffect(() => {
-    divRef.current.scrollIntoView({ behavior: "smooth" });
+    // divRef.current.scrollIntoView({ behavior: "smooth" });
   });
 
   const onLine = window.navigator.onLine;
