@@ -21,7 +21,7 @@ import Streams from "../Streams";
 const MusicPlayer = ({ setIsVisible }) => {
   const { activeSong, currentSongs, currentIndex, isActive, isPlaying } =
     useSelector((state) => state.player) || {};
-  console.log("Active Song", activeSong);
+  // console.log("Active Song", activeSong);
   const [duration, setDuration] = useState(0);
   const [seekTime, setSeekTime] = useState(0);
   const [appTime, setAppTime] = useState(0);

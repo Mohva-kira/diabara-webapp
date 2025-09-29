@@ -53,7 +53,7 @@ export const songsApi = createApi({
     }),
     getSongByArtist: builder.query({
       // The URL for the request is '/fakeApi/posts'
-      query: (artisteid) => "songs?filters[artist][id][$eq]=" + artisteid,
+      query: (artisteid) => "songs?populate=*&filters[artist][id][$eq]=" + artisteid,
     }),
     getSongByCountry: builder.query({
       // The URL for the request is '/fakeApi/posts'

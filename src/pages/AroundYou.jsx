@@ -13,7 +13,7 @@ const CountryTracks = () => {
   const [loading, setLoading] = useState(true);
   const [bestSongs, setBestSongs] = useState();
   const { activeSong, isPlaying } = useSelector((state) => state.player);
-  const { data, isFetching, error } = useGetSongsQuery();
+  const { data, isFetching, error } = useGetSongsQuery({page: 1, size: 50, country});
   const indexedSongs = useLiveQuery(() => db.songs.toArray());
   const indexedStreams = useLiveQuery(() => db.streamsData.toArray());
 

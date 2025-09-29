@@ -134,7 +134,7 @@ const App = () => {
           )}
 
           {/* Routes principales */}
-          <div className="flex-1 h-fit pb-0 px-2">
+          <div className="flex-1 h-full overflow-scroll  pb-0 px-2">
             <ReactPWAInstallProvider enableLogging>
               <Routes>
                 <Route path="/" element={<Discover />} />
@@ -237,8 +237,8 @@ const App = () => {
                 </svg>
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate">{activeSong.title}</p>
-                <p className="text-xs text-gray-300 truncate">{activeSong.subtitle}</p>
+                <p className="text-sm font-medium truncate">{activeSong?.attributes?.name}</p>
+                <p className="text-xs text-gray-300 truncate">{activeSong?.attributes?.artist?.data?.attributes?.name}</p>
               </div>
             </div>
           </div>

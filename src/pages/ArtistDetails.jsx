@@ -13,6 +13,7 @@ import { GiWallet } from "react-icons/gi";
 import { IoAlbums } from "react-icons/io5";
 import { useGetArtistDetailsQuery } from "../redux/services/artistApi";
 import { useEffect, useState } from "react";
+import { useGetSongByArtistQuery } from "../redux/services/songsApi";
 
 
 const ArtistDetails = () => {
@@ -24,25 +25,19 @@ const ArtistDetails = () => {
   console.log('indexed', indexedSongReverse)
   const { activeSong, isPlaying } = useSelector(state => state.player)
   const [songs, setSongs] = useState()
-  const data = useSelector(state => state.songs)
   
   
   const { id: artistId } = useParams()
+  const {data, isLoading, isFetching, isError} = useGetSongByArtistQuery(artistId)
+
   const { data: artistData, isFetching: isFetchingArtistDetails, isError: error } = useGetArtistDetailsQuery(artistId)
 
   
 
   const navigate = useNavigate()
   useEffect(() => {
-
-
-    {console.log('related songs', songs)}
-
-
-    const relatedSong = data.songs.data?.filter((song) => song.attributes.artist.data.id === Number(artistId))
-
-    setSongs(relatedSong)
-  }, [artistData])
+    setSongs(data?.data)
+  }, [data])
 
   if (isFetchingArtistDetails) return <Loader title="Loading artist details" />
   if (error) return <Error />

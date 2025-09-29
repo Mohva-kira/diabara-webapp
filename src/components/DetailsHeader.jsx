@@ -21,7 +21,7 @@ const DetailsHeader = ({ artiste_id, artistData, songData }) => {
 
             <p className="text-base text-gray-400 mt-2">
               {artiste_id
-              ? `Genre: ${artistData?.data?.attributes.genres.data[0]?.attributes.name.charAt(0).toUpperCase() + artistData?.data?.attributes.genres.data[0]?.attributes.name.slice(1)}` //artist?.genreNames[0]
+              ? `Genre: ${artistData?.data?.attributes.genres.data[0]?.attributes.name.toUpperCase()}` //artist?.genreNames[0]
               : 'Rap' // songData?.data.genre  '
 
               }
