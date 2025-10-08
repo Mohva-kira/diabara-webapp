@@ -1,4 +1,4 @@
-import { useDispatch, useSelector } from "react-redux";
+
 import "swiper/css";
 import "swiper/css/bundle";
 

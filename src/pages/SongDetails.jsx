@@ -4,7 +4,7 @@ import { DetailsHeader, Error, Loader, RelatedSongs, SongCard } from "../compone
 
 
 import { setActiveSong, playPause } from "../redux/features/playerSlice";
-import {  useGetSongDetailsQuery, useGetSongRelatedQuery } from "../redux/services/songsApi";
+// import {  useGetSongDetailsQuery, useGetSongRelatedQuery } from "../redux/services/songsApi";
 import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useGetArtistDetailsQuery } from "../redux/services/artistApi";
