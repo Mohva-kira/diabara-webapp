@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef} from "react";
 import { Error, Loader, SongCard } from "../components";
 import { genres } from "../assets/constants";
 import { selectGenreListId } from "../redux/features/playerSlice";
@@ -24,6 +24,12 @@ const Discover = () => {
     useLazyGetPlayedByPageAndUserQuery();
   const [url, setUrl] = useState("");
   const [status, setStatus] = useState("");
+
+
+   const scrollContainerRef = useRef(null);
+  const heroSectionRef = useRef(null);
+  const [scrollY, setScrollY] = useState(0);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   // États pour la pagination infinie
   const [page, setPage] = useState(1);
@@ -76,6 +82,44 @@ const Discover = () => {
     }
   };
 
+
+  // Fonction pour gérer le scroll
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      const scrollTop = scrollContainerRef.current.scrollTop;
+      setScrollY(scrollTop);
+      
+      // Considérer comme "scrollé" après 50px
+      setIsScrolled(scrollTop > 50);
+    }
+  };
+
+  // Calculer la taille dynamique basée sur le scroll
+  const getHeroSectionStyle = () => {
+    const maxScroll = 200; // Distance de scroll maximale pour l'effet
+    const minHeight = 100; // Hauteur minimale en pixels
+    const maxHeight = 400; // Hauteur maximale en pixels
+    
+    // Calculer la progression du scroll (0 à 1)
+    const scrollProgress = Math.min(scrollY / maxScroll, 1);
+    
+    // Calculer la hauteur en fonction du scroll
+    const currentHeight = maxHeight - (scrollProgress * (maxHeight - minHeight));
+    
+    // Calculer l'opacité
+    const opacity = Math.max(1 - (scrollProgress * 0.5), 0.3);
+    
+    return {
+      height: `${currentHeight}px`,
+      opacity: opacity,
+      transition: 'height 0.3s ease-out, opacity 0.3s ease-out',
+      overflow: 'hidden'
+    };
+  };
+
+
+
+
   // Configuration du hook d'infinite scroll
   const [sentryRef] = useInfiniteScroll({
     loading: isLoadingMore,
@@ -87,14 +131,14 @@ const Discover = () => {
   useEffect(() => {
     getSongs({
       page: 1,
-      size: 20,
+      size: 21,
     });
   }, []);
   // Effet pour initialiser les données
   useEffect(() => {
     if (isSuccess && data?.data && page === 1) {
       setAllSongs(data.data);
-      setHasNextPage(data.data.length >= 20);
+      setHasNextPage(data.data.length >= 21);
     }
   }, [isSuccess, data, page]);
 
@@ -102,7 +146,7 @@ const Discover = () => {
   if (error) return <Error />;
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-screen">
       <div className="w-full flex justify-between items-center sm:flex-row flex-col mt-4 mb-10">
         <h2 className="font-bold text-3xl text-white text-left">Discover</h2>
         <select
@@ -115,9 +159,16 @@ const Discover = () => {
             </option>
           ))}
         </select>
-      </div>
+      </div> 
 
-      <div className="w-full h-60 mb-6 px-6 rounded-2xl flex justify-center items-center ">
+      {/* Section Hero avec taille dynamique */}
+      <div 
+        ref={heroSectionRef}
+        className={`w-full mb-2 px-6 rounded-2xl flex justify-center items-center ${
+          isScrolled ? 'shadow-lg  hidden' : ''
+        }`}
+        style={getHeroSectionStyle()}
+      >
         {promotionLoading && <Loader title="Loading promotions..." />}
         {!promotionLoading &&
           promotionData &&
@@ -131,15 +182,23 @@ const Discover = () => {
           promotionData &&
           promotionData.data &&
           promotionData.data.length > 0 && (
-            <HeroSection
-              items={promotionData.data}
-              imageBaseUrl={import.meta.env.VITE_API_FILE_URL}
-            />
+            <div className={`transform w-full h-full transition-transform duration-300 ${
+              isScrolled ? 'scale-90' : 'scale-100'
+            }`}>
+              <HeroSection
+                items={promotionData.data}
+                imageBaseUrl={import.meta.env.VITE_API_FILE_URL}
+              />
+            </div>
           )}
       </div>
 
       {/* Liste des chansons avec infinite scroll */}
-      <div className="flex flex-wrap sm:justify-start overflow-scroll justify-center gap-8">
+      <div 
+        ref={scrollContainerRef}
+        className="flex flex-wrap h-full  sm:justify-start overflow-scroll no-scrollbar pb-20  justify-center gap-8 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-300"
+        onScroll={handleScroll}
+      >
         {allSongs.map((song, i) => (
           <SongCard
             key={`${song.key || song.id}-${i}`}
@@ -151,12 +210,12 @@ const Discover = () => {
           />
         ))}
 
-        {/* Sentry pour déclencher le chargement - Correction finale */}
+        {/* Sentry pour déclencher le chargement */}
         {(isLoadingMore || hasNextPage) && (
           <div
             ref={sentryRef}
             className="w-full flex justify-center py-4"
-            style={{ minHeight: "1px" }} // Hauteur minimale pour que le sentry soit détecté
+            style={{ minHeight: "1px" }}
           >
             {isLoadingMore && (
               <div className="flex items-center">

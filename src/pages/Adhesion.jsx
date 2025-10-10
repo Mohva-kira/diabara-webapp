@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 const Adhesion = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [image, setImage] = useState();
+  const [image, setImage] = useState();  
   const [password, setPassword] = useState();
   const [password2, setPassword2] = useState();
   const [date_naissance, setDate_naissance] = useState();

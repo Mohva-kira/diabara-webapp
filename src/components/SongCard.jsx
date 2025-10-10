@@ -140,10 +140,10 @@ const SongCard = ({
 
     return (
       <div
-      className={`md:w-full md:h-full object-contain w-full h-full  flex justify-center items-center rounded-full md:rounded-2xl ${detail ? "rounded-2xl" : "rounded-2xl"}`}
+      className={`md:w-full md:h-full object-contain w-full   flex justify-center items-center rounded-full md:rounded-2xl ${detail ? "rounded-2xl" : "rounded-2xl"}`}
     >
     
-      <div className="pointer-events-auto relative shadow-md md:h-full rounded-full md:w-3/4  h-3/4 hover:bg-orange-500 p-2 bg-black bg-opacity-50 shadow-white/70">
+      <div className="pointer-events-auto relative shadow-md md:h-full rounded-full md:w-3/4  h-full hover:bg-orange-500 p-2 bg-black bg-opacity-50 shadow-white/70">
       <img
         ref={imgRef}
         src={imageUrl}
@@ -192,7 +192,7 @@ const SongCard = ({
   });
 
   return (
-    <div onClick={handlePlayClickWithCounter} className={`h-full  `}>
+    <div onClick={handlePlayClickWithCounter} className={`w-full md:w-[241px]  mb-4`}>
       <div
         className={`flex md:flex-col ${isDetails ? "  md:h-[541px]" : "md:w-[241px]"} md:p-4 corner bg-white/5 w-full md:h-[350px] bg-opacity-80 h-32  backdrop-blur-sm animate-slideup rounded-[2em]`}>
         {count > 2 ? (

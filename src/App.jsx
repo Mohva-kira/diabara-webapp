@@ -134,7 +134,7 @@ const App = () => {
           )}
 
           {/* Routes principales */}
-          <div className="flex-1 h-full overflow-scroll  pb-0 px-2">
+          <div className="flex-1 h-full   pb-0 px-2">
             <ReactPWAInstallProvider enableLogging>
               <Routes>
                 <Route path="/" element={<Discover />} />
@@ -181,7 +181,7 @@ const App = () => {
         {isVisible && activeSong?.attributes?.name && (
           <div className={`
             transition-all duration-300 ease-in-out 
-            h-52
+            h-44
             fixed bottom-0 left-0 right-0 w-full  z-50 items-center justify-between px-6 backdrop-blur-md bg-gradient-to-r from-[#1c1c6e] via-[#2e2e88] to-[#3a3a9c] rounded-t-3xl shadow-2xl
             ${playerMinimized 
               ? 'transform translate-y-full opacity-0 pointer-events-none' 

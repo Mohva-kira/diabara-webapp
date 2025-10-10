@@ -5,8 +5,6 @@ const HeroSection = ({items = [], imageBaseUrl= ""}) => {
 
     const item = items && items.length ? items[0] : null;
 
-    console.log('hero item', item);
-    console.log('imageBaseUrl', imageBaseUrl);
 
     // Safe accessors
     const title = item?.attributes?.title ?? "Titre inconnu";
@@ -20,13 +18,13 @@ const HeroSection = ({items = [], imageBaseUrl= ""}) => {
       : ""
 
   return (
-    <section className="relative w-full overflow-hidden h-64 bg-black text-white">
+    <section className="relative w-full overflow-hidden h-full bg-black text-white">
       {/* decorative gradient overlay (left) */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent pointer-events-none"></div>
 
       <div className="relative w-full h-full max-w-7xl mx-auto px-4 lg:px-6 flex items-center">
         {/* Left content */}
-        <div className="w-full lg:w-2/3 z-10 space-y-3">
+        <div className="w-full lg:w-1/2 z-10 space-y-3">
           <p className="text-xs text-gray-300 uppercase tracking-wider">
             Trending New Hits
           </p>
@@ -72,7 +70,7 @@ const HeroSection = ({items = [], imageBaseUrl= ""}) => {
         </div>
 
         {/* Right - image container */}
-        <div className="block lg:w-1/3 relative h-full">
+        <div className="block lg:w-1/2 relative h-full">
           {/* vertical dots on the far right like the reference (decorative) */}
           <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 flex flex-col gap-2">
             <span className="w-1 h-1 rounded-full bg-white/30"></span>
