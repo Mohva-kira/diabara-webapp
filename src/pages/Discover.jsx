@@ -17,11 +17,11 @@ import HeroSection from "../components/HeroSection";
 
 const Discover = () => {
   const dispatch = useDispatch();
-  const indexedSongs = useLiveQuery(() => db.songs.toArray());
+  const indexedSongs = useLiveQuery(() => db.songs.toArray());  
   const indexedStreams = useLiveQuery(() => db.streamsData.toArray());
   const [firstVisitData, setFirstVisitData] = useState({});
   const [getPlayedByUser, { data: playedData }] =
-    useLazyGetPlayedByPageAndUserQuery();
+    useLazyGetPlayedByPageAndUserQuery();  
   const [url, setUrl] = useState("");
   const [status, setStatus] = useState("");
 
@@ -30,7 +30,7 @@ const Discover = () => {
   const heroSectionRef = useRef(null);
   const [scrollY, setScrollY] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
-
+ 
   // États pour la pagination infinie
   const [page, setPage] = useState(1);
   const [allSongs, setAllSongs] = useState([]);

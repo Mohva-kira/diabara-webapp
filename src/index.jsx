@@ -25,7 +25,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               Installer
           </button>
       </Modal2> */}
-        <Router>
+        <Router basename="/">
           <App />
         </Router>
    

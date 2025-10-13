@@ -1,22 +1,26 @@
 // import { View, Text } from 'react-native'
 import React from 'react'
+import { use } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const HeroSection = ({items = [], imageBaseUrl= ""}) => {
 
-    const item = items && items.length ? items[0] : null;
+    const item = items && items.length ? items[1] : null;
 
 
     // Safe accessors
     const title = item?.attributes?.title ?? "Titre inconnu";
     const description = item?.attributes?.description ?? "";
     const artistName = item?.attributes?.artist?.data?.attributes?.name ?? "";
-    const plays = item?.attributes?.plays ?? "63Million Plays"; // fallback
+    const plays = item?.attributes?.plays ?? "1 Million Plays"; // fallback
+    const path = item?.attributes.url ?? "#";
     // image path selection (use medium or url)
     const imageData = item?.attributes?.image?.data?.[0]?.attributes ?? null;
     const imageUrl = imageData
       ? (imageBaseUrl.replace(/\/$/, "") + (imageData.url ?? imageData.formats?.medium?.url ?? ""))
       : ""
 
+      const navigate = useNavigate();
   return (
     <section className="relative w-full overflow-hidden h-full bg-black text-white">
       {/* decorative gradient overlay (left) */}
@@ -48,6 +52,7 @@ const HeroSection = ({items = [], imageBaseUrl= ""}) => {
               type="button"
               className="inline-flex items-center gap-2 rounded-full bg-sky-600 hover:bg-sky-500 active:scale-[0.98] transition-transform px-4 py-2 text-sm text-white font-medium shadow-lg"
               aria-label={`Écouter ${title}`}
+              onClick={() => {navigate(path)}}
             >
               {/* play icon */}
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>

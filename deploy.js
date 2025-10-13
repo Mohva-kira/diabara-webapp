@@ -51,7 +51,7 @@ if (fullHash === previousHash) {
 
 try {
   console.log('📦 Changements détectés. Build de l’application React...');
-  execSync('npx cross-env CI=false npm run build', { stdio: 'inherit' });
+  execSync('npm run build', { stdio: 'inherit' });
 
   console.log('🚀 Déploiement avec rsync...');
   const scpCommand = `scp -P ${remotePort} -r ${localBuildPath}/* ${remoteUser}@${remoteHost}:${remotePath}`;

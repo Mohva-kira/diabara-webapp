@@ -16,6 +16,54 @@ import {
 import { Header, MusicPlayer, Searchbar, Sidebar, TopPlay } from './components';
 import { ToastContainer } from 'react-toastify';
 
+export const showNotification = (title = 'New Message!', options = {}) => {
+  // ...existing code...
+  console.log('Attempting to show notification...', typeof Notification !== 'undefined' ? Notification.permission : 'no-api');
+
+  if (typeof Notification === 'undefined') {
+    console.log('Notifications API non supportée par ce navigateur.');
+    return;
+  }
+
+  if (!window.isSecureContext) {
+    console.warn('Les notifications nécessitent un contexte sécurisé (HTTPS) ou localhost.');
+    // continuer quand même, mais souvent échouera hors HTTPS
+  }
+
+  const finalOptions = {
+    body: options.body || 'Nouveauté disponible.',
+    icon: options.icon || myLogo,
+    ...options,
+  };
+
+  const create = () => {
+    try {
+      new Notification(title, finalOptions);
+      console.log('Notification affichée.');
+    } catch (err) {
+      console.error('Erreur lors de la création de la notification:', err);
+    }
+  };
+
+  if (Notification.permission === 'granted') {
+    create();
+  } else if (Notification.permission === 'denied') {
+    console.log('Permission de notification refusée précédemment.');
+  } else {
+    // 'default' -> demander la permission
+    Notification.requestPermission().then((permission) => {
+      console.log('Résultat requestPermission:', permission);
+      if (permission === 'granted') {
+        create();
+      } else {
+        console.log('Permission de notification non accordée.');
+      }
+    }).catch((err) => {
+      console.error('Erreur requestPermission:', err);
+    });
+  }
+};
+
 const App = () => {
   const { pwaInstall, supported, isInstalled } = useReactPWAInstall();
   const [isVisible, setIsVisible] = useState(true);
@@ -24,7 +72,7 @@ const App = () => {
   const { activeSong } = useSelector((state) => state.player);
   const location = useLocation();
 
-  console.log('activeSong:', activeSong);
+  
 
   // Configuration PWA
   const PWA_CONFIG = {
@@ -53,13 +101,19 @@ const App = () => {
     }
   }, [pwaInstall]);
 
+  
+
   // Initialisation Google Analytics
   useEffect(() => {
     ReactGA.initialize("G-YQKY9V1351");
     initGA();
     logEvent("Page", "View", "Home Page");
   }, []);
-
+  
+  useEffect(() => {
+    // Exemple : afficher une notification au montage (la fonction gère la demande de permission)
+    showNotification('Bienvenue', { body: "Notifications activées — test", icon: myLogo });
+  }, []);
   // Suivi des changements de page
   useEffect(() => {
     logPageView();
@@ -82,6 +136,18 @@ const App = () => {
     return () => {
       window.removeEventListener("load", handlePageLoad);
     };
+  }, []);
+
+  useEffect(() => {
+    if (typeof Notification === 'undefined') {
+      console.log('Notifications API non supportée par ce navigateur.');
+      return;
+    }
+    if (Notification.permission === 'default') {
+      Notification.requestPermission().then((permission) => {
+        console.log('Permission de notification au montage:', permission);
+      }).catch((err) => console.error('Erreur requestPermission au montage:', err));
+    }
   }, []);
 
   // Gestion de la visibilité du lecteur
@@ -114,7 +180,7 @@ const App = () => {
       
         <Sidebar />
       
-        <ToastContainer />
+        <ToastContainer /> 
       {/* Contenu principal */}
       <div className="flex-1 flex flex-col bg-gradient-to-br from-black to-[#121286]">
         {/* Header */}
@@ -134,7 +200,7 @@ const App = () => {
           )}
 
           {/* Routes principales */}
-          <div className="flex-1 h-full   pb-0 px-2">
+          <div className="flex-1 h-full  overflow-scroll no-scrollbar pb-20  justify-center gap-8 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-300  pb-0 px-2">
             <ReactPWAInstallProvider enableLogging>
               <Routes>
                 <Route path="/" element={<Discover />} />

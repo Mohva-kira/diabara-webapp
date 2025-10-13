@@ -43,7 +43,7 @@ const ArtistDetails = () => {
   if (error) return <Error />
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-full ">
       <DetailsHeader artiste_id={artistId} artistData={artistData} songData={songs} />
  
 

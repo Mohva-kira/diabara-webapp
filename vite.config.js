@@ -46,7 +46,7 @@ export default ({ mode }) => {
 
       }
     },
-    base: './',
+    base: '/',
     resolve: {
       alias: {
         require: 'esbuild-plugin-require',
