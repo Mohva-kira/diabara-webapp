@@ -72,8 +72,64 @@ const App = () => {
   const { activeSong } = useSelector((state) => state.player);
   const location = useLocation();
 
-  
+  const [deviceId, setDeviceId] = useState(null);
 
+useEffect(() => {
+  let mounted = true;
+  const STORAGE_KEY = "diabaratv_deviceId";
+
+  const canvasFingerprint = () => {
+    try {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.textBaseline = "top";
+      ctx.font = "16px 'Arial'";
+      ctx.fillStyle = "#f60";
+      ctx.fillRect(125, 1, 62, 20);
+      ctx.fillStyle = "#069";
+      ctx.fillText("diabaratv", 2, 15);
+      return canvas.toDataURL();
+    } catch (e) {
+      return "";
+    }
+  };
+
+  const hashString = async (str) => {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+  };
+
+  const buildAndStoreId = async () => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) return stored;
+
+    const nav = window.navigator || {};
+    const parts = [
+      nav.userAgent || "",
+      nav.language || "",
+      nav.platform || "",
+      nav.hardwareConcurrency || "",
+      nav.deviceMemory || "",
+      Intl?.DateTimeFormat?.().resolvedOptions?.().timeZone || "",
+      screen?.width || "",
+      screen?.height || "",
+      screen?.colorDepth || "",
+      new Date().getTimezoneOffset()
+    ];
+    const canvas = canvasFingerprint();
+    // ajoute un peu d'entropie pour éviter collisions si nécessaire
+    const rand = Array.from(crypto.getRandomValues(new Uint8Array(8))).join(",");
+    const raw = parts.join("||") + "||" + canvas + "||" + rand;
+    const id = await hashString(raw);
+    console.log("STORE_KEY", id)
+    try { localStorage.setItem(STORAGE_KEY, id); } catch(e){ /* ignore */ }
+    return id;
+  };
+
+  buildAndStoreId().then(id => { if (mounted) setDeviceId(id); }).catch(() => {});
+
+  return () => { mounted = false; };
+}, []);
   // Configuration PWA
   const PWA_CONFIG = {
     title: "Install Web App",

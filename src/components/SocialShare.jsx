@@ -25,13 +25,13 @@ const SocialShare = ({ url, image, title, description }) => (
         
   
         <ShareContainer>
-            <FacebookShareButton url={url} quote={description} hashtag="#example">
+            <FacebookShareButton url={url} quote={description} hashtag={`${title} - DiabaraTv`}>
                 <FacebookIcon size={32} round />
             </FacebookShareButton>
-            <TwitterShareButton url={url} title={description} via="your_twitter_handle" hashtags={['example']}>
+            <TwitterShareButton url={url} title={description} via="your_twitter_handle" hashtags={[`${title} - DiabaraTv`]}>
                 <TwitterIcon size={32} round />
             </TwitterShareButton>
-            <LinkedinShareButton url={url} title={title} summary={description} source="example.com">
+            <LinkedinShareButton url={url} title={title} summary={description} source="DiabaraTv">
                 <LinkedinIcon size={32} round />
             </LinkedinShareButton>
         </ShareContainer>

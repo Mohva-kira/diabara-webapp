@@ -25,6 +25,7 @@ import SocialShare from "./SocialShare";
 import "./SongCard.css";
 import Streams from "./Streams";
 import SongActions from "./SongActions";
+import { useGetStreamsQuery } from "../redux/services/streams";
 
 const SongCard = ({
   song,
@@ -32,7 +33,7 @@ const SongCard = ({
   activeSong,
   isPlaying,
   data,
-  streams,
+  
   refetchStreams,
   isStreamFetching,
   detail,
@@ -44,10 +45,15 @@ const SongCard = ({
   const API_FILE_URL = import.meta.env.VITE_API_FILE_URL;
   const [count, setCount] = useState(0);
   const [postPlayed] = usePlayedMutation();
-
+  const {data: streams, isLoading: isLoadingStreams, refetch} = useGetStreamsQuery(song.id)
+  const [isCompleted, setIsCompleted] = useState(false)
+  const [isImgError, setIsImgError] = useState(false)
   const isDetails = useMatch("/songs/:songid");
   const detailSong = isDetails?.params.songid;
 
+
+  console.log('streams song card', streams)
+  
   ReactGA.initialize([
     {
       trackingId: "G-YQKY9V1351",
@@ -222,7 +228,7 @@ const SongCard = ({
               <div className="w-full flex justify-center items-center">
                 <p className="font-semibold md:m-1 md:p-1 md:w-full w-[220px] text-ellipsis animate animate-slideleft flex justify-center items-center md:gap-1 capitalize text-sm text-white truncate">
                   <MdMusicNote className="text-orange-600 md:block hidden" />
-                  <Link to={`/songs/${song?.id}`}>{song.attributes.name}</Link>
+                  <Link to={`/songs/${song?.attributes?.name}`}>{song.attributes.name}</Link>
                 </p>
               </div>
               <div className="w-full flex justify-center items-center">
@@ -258,7 +264,7 @@ const SongCard = ({
               </div>
               <a className="md:block hidden" onClick={share}>
                 <SocialShare
-                  url={`https://diabara.tv/songs/${song.id}`}
+                  url={`https://diabara.tv/songs/${song.attributes?.name}`}
                   image={`https://api.diabara.tv${song.attributes?.cover?.data[0]?.attributes?.formats?.small?.url}`}
                   description="La musique au bout des doigts"
                   title={`DiabaraTv - ${song.attributes.name}`}

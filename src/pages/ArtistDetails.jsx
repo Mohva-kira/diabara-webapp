@@ -13,7 +13,7 @@ import { GiWallet } from "react-icons/gi";
 import { IoAlbums } from "react-icons/io5";
 import { useGetArtistDetailsQuery } from "../redux/services/artistApi";
 import { useEffect, useState } from "react";
-import { useGetSongByArtistQuery } from "../redux/services/songsApi";
+import { useGetSongByArtistQuery, useGetSongByNameQuery } from "../redux/services/songsApi";
 
 
 const ArtistDetails = () => {
@@ -29,6 +29,7 @@ const ArtistDetails = () => {
   
   const { id: artistId } = useParams()
   const {data, isLoading, isFetching, isError} = useGetSongByArtistQuery(artistId)
+  const  { data: songByArtistData}= useGetSongByNameQuery(artistId)
 
   const { data: artistData, isFetching: isFetchingArtistDetails, isError: error } = useGetArtistDetailsQuery(artistId)
 

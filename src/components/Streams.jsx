@@ -5,6 +5,7 @@ import CountUp from "react-countup";
 
 const Streams = ({ streams }) => {
   // console.log('streams songs', streams)
+  console.log('streams comp', streams)
   return (
     <motion.button
       whileHover={{ scale: 1.4 }}
@@ -16,7 +17,7 @@ const Streams = ({ streams }) => {
         <span className="w-10 h-10">
           <CountUp
             start={0}
-            end={streams?.length}
+            end={streams ? streams?.meta?.pagination?.total : 0}
             duration={2.75}
             separator=" "
           />

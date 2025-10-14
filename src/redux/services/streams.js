@@ -33,7 +33,7 @@ export const streamsApi = createApi({
     // The `getPosts` endpoint is a "query" operation that returns data
     getStreams: builder.query({
       // The URL for the request is '/fakeApi/posts'
-      query: () => "/streams?populate=*&pagination[start]=0&pagination[limit]=1000",
+      query: (id) => `/streams?populate=*&filters[song][id][$eq]=${id}&sort=end:desc&pagination[limit]=-1`,
     }),
     postStreams: builder.mutation({
       // The URL for the request is '/fakeApi/posts'

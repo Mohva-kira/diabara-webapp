@@ -4,7 +4,7 @@ import { DetailsHeader, Error, Loader, RelatedSongs, SongCard } from "../compone
 
 
 import { setActiveSong, playPause } from "../redux/features/playerSlice";
-import {  useGetSongDetailsQuery, useGetSongRelatedQuery } from "../redux/services/songsApi";
+import {  useGetSongByNameQuery, useGetSongDetailsQuery, useGetSongRelatedQuery } from "../redux/services/songsApi";
 import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useGetArtistDetailsQuery } from "../redux/services/artistApi";
@@ -15,7 +15,7 @@ const SongDetails = () => {
     const { activeSong, isPlaying } = useSelector(state => state.player)
     const { data: songData, isFetching: isFetchingSongDetails, isSuccess: isSuccess, isError: error } = useGetSongDetailsQuery(songid)
     // const { data: relatedSong, isFetching: isFetchingRelatedSong, error} = useGetSongRelatedQuery(isSuccess? songData?.data?.id : "")
-    const songs = isSuccess && songData.data.length > 0 ? songData : localStorage.getItem('songs') && JSON.parse(localStorage.getItem('songs'))
+    const songs = useGetSongByNameQuery(isSuccess ? songData?.data?.attributes?.artist?.data?.attributes?.name : "").data
     const { data: artistData, isFetching: isFetchingArtistDetails, isError: errorArtiste } = useGetArtistDetailsQuery(songData?.data?.attributes?.artist?.data?.id)
     const streams = useSelector(state => state.streams)
 

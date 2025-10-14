@@ -26,7 +26,7 @@ const Player = ({ activeSong, isPlaying, volume, seekTime, onEnded, onTimeUpdate
   };
   const API_FILE_URL = import.meta.env.VITE_API_FILE_URL;
 
-  const myUuid = localStorage.getItem('uuid')
+  const myUuid = localStorage.getItem('diabaratv_deviceId')
   
   const {onLine} = window.navigator
 
@@ -40,7 +40,7 @@ const Player = ({ activeSong, isPlaying, volume, seekTime, onEnded, onTimeUpdate
   
   const checkStreamDuration = async () => {
     // console.log('stream Time 2', streamTime)
-    if (streamTime >= 60 && !find && !isCompleted ) {
+    if (streamTime >= 30 && !find && !isCompleted ) {
       // Faire quelque chose lorsque la chanson a été streamée pendant plus d'une minute
       console.log("La chanson a été streamée pendant plus d'une minute !");
 
@@ -50,7 +50,7 @@ const Player = ({ activeSong, isPlaying, volume, seekTime, onEnded, onTimeUpdate
     }
 
       setIsCompleted(!isCompleted); // Mettre à jour l'état du post à true pour éviter les posts supplémentaires
-      let data = {user: user?.user.id, song: song.id, start: startTime, end: new Date(), uuid: localStorage.getItem('uuid')}
+      let data = {user: user?.user.id, song: song.id, start: startTime, end: new Date(), uuid: localStorage.getItem('diabaratv_deviceId')}
       try {
         await  postStream(JSON.stringify({data})).then(rep => console.log('enRegistrer'))
         logEvent('stream', 'stream', '')
