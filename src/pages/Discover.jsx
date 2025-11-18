@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef} from "react";
-import { Error, Loader, SongCard } from "../components";
+import { Error, Loader, SongCard, SEO } from "../components";
 import { genres } from "../assets/constants";
 import { selectGenreListId } from "../redux/features/playerSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -146,59 +146,95 @@ const Discover = () => {
   if (error) return <Error />;
 
   return (
-    <div className="flex flex-col h-screen">
-      <div className="w-full flex justify-between items-center sm:flex-row flex-col mt-4 mb-10">
-        <h2 className="font-bold text-3xl text-white text-left">Discover</h2>
+    <>
+      <SEO
+        title="Discover - Diabara TV"
+        description="Découvrez la meilleure musique africaine sur Diabara TV. Explorez nos playlists, artistes et chansons populaires."
+        url="https://diabara.tv/"
+      />
+    <div className="flex flex-col h-screen relative bg-gradient-to-b from-black via-black to-black overflow-hidden">
+      {/* Header fixe - Discover et Filtres */}
+      <div 
+        className={`
+          fixed z-40 
+          flex items-center gap-3
+          transition-all duration-300
+          ${isScrolled ? 'opacity-100 translate-y-0' : 'opacity-100 translate-y-0'}
+          top-6 left-6 sm:top-6 sm:left-auto sm:right-6
+        `}
+      >
+        <h2 className="font-light text-lg text-orange-500 hidden sm:block tracking-wide drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]">Discover</h2>
         <select
           onChange={(e) => dispatch(selectGenreListId(e.target.value))}
           value={genreListId || ""}
-          className="bg-black text-gray-300 p-3 text-sm rounded-lg outline-none sm:mt-0 mt-5">
+          className="
+            bg-black/80 backdrop-blur-lg 
+            text-white/90 
+            px-3 py-2 sm:px-4 sm:py-2.5 
+            text-xs sm:text-sm 
+            rounded-lg 
+            outline-none 
+            border border-blue-500/40
+            hover:border-orange-500/60
+            hover:bg-black/90
+            transition-all duration-300
+            cursor-pointer
+            font-light
+            shadow-lg shadow-orange-500/10
+            max-w-[140px] sm:max-w-none
+          ">
+          <option value="" className="bg-gray-900">Tous les genres</option>
           {genres.map((genre) => (
-            <option key={genre.value} value={genre.value}>
+            <option key={genre.value} value={genre.value} className="bg-gray-900">
               {genre.title}
             </option>
           ))}
         </select>
-      </div> 
-
-      {/* Section Hero avec taille dynamique */}
-      <div 
-        ref={heroSectionRef}
-        className={`w-full mb-2 px-6 rounded-2xl flex justify-center items-center ${
-          isScrolled ? 'shadow-lg  hidden' : ''
-        }`}
-        style={getHeroSectionStyle()}
-      >
-        {promotionLoading && <Loader title="Loading promotions..." />}
-        {!promotionLoading &&
-          promotionData &&
-          promotionData.data &&
-          promotionData.data.length === 0 && (
-            <div className="text-gray-500">
-              Aucune promotion disponible pour le moment.
-            </div>
-          )}
-        {!promotionLoading &&
-          promotionData &&
-          promotionData.data &&
-          promotionData.data.length > 0 && (
-            <div className={`transform w-full h-full transition-transform duration-300 ${
-              isScrolled ? 'scale-90' : 'scale-100'
-            }`}>
-              <HeroSection
-                items={promotionData.data}
-                imageBaseUrl={import.meta.env.VITE_API_FILE_URL}
-              />
-            </div>
-          )}
       </div>
 
-      {/* Liste des chansons avec infinite scroll */}
+      {/* Conteneur scrollable principal */}
       <div 
         ref={scrollContainerRef}
-        className="flex flex-wrap h-full  sm:justify-start overflow-scroll no-scrollbar pb-20  justify-center gap-8 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-300"
+        className="flex-1 overflow-y-auto overflow-x-hidden pb-32 pt-4 px-6 no-scrollbar"
         onScroll={handleScroll}
+        style={{ scrollBehavior: 'smooth' }}
       >
+        {/* Section Hero - cachée lors du scroll */}
+        <div 
+          ref={heroSectionRef}
+          className={`
+            w-full mb-4 rounded-2xl flex justify-center items-center
+            transition-all duration-500 ease-in-out
+            ${isScrolled ? 'opacity-0 h-0 mb-0 overflow-hidden pointer-events-none' : 'opacity-100'}
+          `}
+          style={!isScrolled ? getHeroSectionStyle() : {}}
+        >
+          {promotionLoading && <Loader title="Loading promotions..." />}
+          {!promotionLoading &&
+            promotionData &&
+            promotionData.data &&
+            promotionData.data.length === 0 && (
+              <div className="text-gray-500">
+                Aucune promotion disponible pour le moment.
+              </div>
+            )}
+          {!promotionLoading &&
+            promotionData &&
+            promotionData.data &&
+            promotionData.data.length > 0 && (
+              <div className="w-full h-full">
+                <HeroSection
+                  items={promotionData.data}
+                  imageBaseUrl={import.meta.env.VITE_API_FILE_URL}
+                />
+              </div>
+            )}
+        </div>
+
+        {/* Liste des chansons avec infinite scroll */}
+        <div 
+          className="flex flex-wrap sm:justify-start justify-center gap-6"
+        >
         {allSongs.map((song, i) => (
           <SongCard
             key={`${song.key || song.id}-${i}`}
@@ -210,30 +246,32 @@ const Discover = () => {
           />
         ))}
 
-        {/* Sentry pour déclencher le chargement */}
-        {(isLoadingMore || hasNextPage) && (
-          <div
-            ref={sentryRef}
-            className="w-full flex justify-center py-4"
-            style={{ minHeight: "1px" }}
-          >
-            {isLoadingMore && (
-              <div className="flex items-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                <span className="ml-2 text-white">Chargement...</span>
-              </div>
-            )}
-          </div>
-        )}
+          {/* Sentry pour déclencher le chargement */}
+          {(isLoadingMore || hasNextPage) && (
+            <div
+              ref={sentryRef}
+              className="w-full flex justify-center py-4"
+              style={{ minHeight: "1px" }}
+            >
+              {isLoadingMore && (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  <span className="ml-2 text-white">Chargement...</span>
+                </div>
+              )}
+            </div>
+          )}
 
-        {/* Message de fin */}
-        {!hasNextPage && allSongs.length > 0 && (
-          <div className="w-full text-center py-4 text-gray-400">
-            Toutes les chansons ont été chargées
-          </div>
-        )}
+          {/* Message de fin */}
+          {!hasNextPage && allSongs.length > 0 && (
+            <div className="w-full text-center py-4 text-gray-400">
+              Toutes les chansons ont été chargées
+            </div>
+          )}
+        </div>
       </div>
     </div>
+    </>
   );
 };
 

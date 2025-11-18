@@ -18,7 +18,7 @@ import Playlist from "../Playlist";
 import Download from "../Download";
 import Streams from "../Streams";
 
-const MusicPlayer = ({ setIsVisible }) => {
+const MusicPlayer = ({ setIsVisible, onMinimize }) => {
   const { activeSong, currentSongs, currentIndex, isActive, isPlaying } =
     useSelector((state) => state.player) || {};
   // console.log("Active Song", activeSong);
@@ -88,13 +88,41 @@ const MusicPlayer = ({ setIsVisible }) => {
     ],
   });
   return (
-    <div className="relative sm:px-2 mb-5 px-2 m-2 w-full flex flex-col items-center justify-between  border-t border-gray-600">
-      <div
-        onClick={() => setIsVisible(false)}
-        className="absolute top-2 right-5 font-bold text-2xl text-white">
-        X
+    <div className="relative sm:px-2 mb-5 px-2 m-2 w-full flex flex-col items-center justify-between border-t border-gray-600">
+      {/* Boutons de contrôle en haut à droite */}
+      <div className="absolute top-2 right-2 flex items-center gap-2 z-10">
+        {/* Bouton de réduction */}
+        {onMinimize && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onMinimize();
+            }}
+            className="text-white hover:text-orange-400 transition-colors p-1 rounded hover:bg-white/10"
+            aria-label="Réduire le lecteur"
+            title="Réduire"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+            </svg>
+          </button>
+        )}
+        
+        {/* Bouton de fermeture */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsVisible(false);
+          }}
+          className="text-white hover:text-red-400 transition-colors p-1 rounded hover:bg-white/10 font-bold text-xl"
+          aria-label="Fermer le lecteur"
+          title="Fermer"
+        >
+          ×
+        </button>
       </div>
-      <div className=" flex justify-center absolute top-2 right-14">
+      
+      <div className="flex justify-center absolute top-2 right-24 sm:right-28">
        <SongActions
             songId={activeSong.id}
             song={activeSong}

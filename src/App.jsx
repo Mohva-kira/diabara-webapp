@@ -68,6 +68,7 @@ const App = () => {
   const { pwaInstall, supported, isInstalled } = useReactPWAInstall();
   const [isVisible, setIsVisible] = useState(true);
   const [playerMinimized, setPlayerMinimized] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const { activeSong } = useSelector((state) => state.player);
   const location = useLocation();
@@ -206,6 +207,11 @@ useEffect(() => {
     }
   }, []);
 
+  // Réinitialiser le scroll lors du changement de page
+  useEffect(() => {
+    setIsScrolled(false);
+  }, [location.pathname]);
+
   // Gestion de la visibilité du lecteur
   useEffect(() => {
     if (activeSong) {
@@ -236,9 +242,20 @@ useEffect(() => {
       
         <Sidebar />
       
-        <ToastContainer /> 
+        <ToastContainer 
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="dark"
+        /> 
       {/* Contenu principal */}
-      <div className="flex-1 flex flex-col bg-gradient-to-br from-black to-[#121286]">
+      <div className="flex-1 flex flex-col bg-gradient-to-br from-black via-black to-black">
         {/* Header */}
         <Header />
 
@@ -256,7 +273,12 @@ useEffect(() => {
           )}
 
           {/* Routes principales */}
-          <div className="flex-1 h-full  overflow-scroll no-scrollbar pb-20  justify-center gap-8 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-300  pb-0 px-2">
+          <div 
+            className="flex-1 h-full  overflow-scroll no-scrollbar pb-20  justify-center gap-8 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-300  pb-0 px-2"
+            onScroll={(e) => {
+              setIsScrolled(e.target.scrollTop > 50);
+            }}
+          >
             <ReactPWAInstallProvider enableLogging>
               <Routes>
                 <Route path="/" element={<Discover />} />
@@ -291,8 +313,18 @@ useEffect(() => {
             </ReactPWAInstallProvider>
           </div>
 
-          {/* Zone latérale droite */}
-          <div className="xl:sticky relative top-0 h-fit">
+          {/* Zone latérale droite - Top Artists caché lors du scroll */}
+          <div 
+            className={`
+              xl:sticky relative top-0 h-fit
+              transition-all duration-500 ease-in-out
+              ${isScrolled 
+                ? 'opacity-0 h-0 overflow-hidden hidden pointer-events-none xl:translate-x-full' 
+                : 'opacity-100 translate-x-0'
+              }
+            `}
+           
+          >
             {!location.pathname.includes("/blog") && (
               <TopPlay />
             )}
@@ -303,8 +335,8 @@ useEffect(() => {
         {isVisible && activeSong?.attributes?.name && (
           <div className={`
             transition-all duration-300 ease-in-out 
-            h-44
-            fixed bottom-0 left-0 right-0 w-full  z-50 items-center justify-between px-6 backdrop-blur-md bg-gradient-to-r from-[#1c1c6e] via-[#2e2e88] to-[#3a3a9c] rounded-t-3xl shadow-2xl
+            min-h-[11rem] max-h-[12rem] sm:min-h-[12rem] sm:max-h-[14rem]
+            fixed bottom-0 left-0 right-0 w-full z-50 items-center justify-between px-6 backdrop-blur-md bg-gradient-to-r from-black via-black/95 to-black rounded-t-3xl shadow-2xl border-t border-orange-500/30
             ${playerMinimized 
               ? 'transform translate-y-full opacity-0 pointer-events-none' 
               : 'transform translate-y-0 opacity-100'
@@ -313,7 +345,7 @@ useEffect(() => {
             <MusicPlayer 
               onMinimize={hidePlayer}
               onToggle={togglePlayerVisibility}
-              setIsVisible={hidePlayer}
+              setIsVisible={setIsVisible}
             />
           </div>
         )}
@@ -322,7 +354,7 @@ useEffect(() => {
         {isVisible && activeSong?.attributes?.name && playerMinimized && (
           <button
             onClick={showPlayer}
-            className="fixed bottom-6 right-6 h-24 z-50 bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 group"
+            className="fixed bottom-6 right-6 h-24 z-50 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white p-4 rounded-full shadow-lg shadow-orange-500/30 transition-all duration-300 hover:scale-110 group border-2 border-blue-500/40"
             aria-label="Afficher le lecteur de musique"
           >
             {/* Icône de musique */}
@@ -351,9 +383,9 @@ useEffect(() => {
 
         {/* Indicateur de chanson en cours (version minimale) */}
         {isVisible && activeSong?.attributes?.name && playerMinimized && (
-          <div className="fixed bottom-6 left-6 z-40 bg-black/80 h-10 backdrop-blur-sm text-white px-4 py-2 rounded-lg shadow-lg max-w-xs">
+          <div className="fixed bottom-6 left-6 z-40 bg-black/90 h-10 backdrop-blur-sm text-white px-4 py-2 rounded-lg shadow-lg shadow-orange-500/20 max-w-xs border border-blue-500/30">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-violet-500 to-purple-500 rounded flex-shrink-0 flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded flex-shrink-0 flex items-center justify-center border border-blue-500/40">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8 5v14l11-7z"/>
                 </svg>

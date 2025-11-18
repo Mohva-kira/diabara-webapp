@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { DetailsHeader, Error, Loader, RelatedSongs, Gallery } from "../components";
+import { DetailsHeader, Error, Loader, RelatedSongs, Gallery, SEO } from "../components";
 
 import { selectCurrentToken, selectCurrentUser } from "../redux/features/auth/authSlice";
 import { Link } from "react-router-dom";
@@ -43,7 +43,37 @@ const ArtistDetails = () => {
   if (isFetchingArtistDetails) return <Loader title="Loading artist details" />
   if (error) return <Error />
 
+  // Préparer les données SEO
+  const artistName = artistData?.data?.attributes?.name || 'Artiste';
+  const artistTitle = `${artistName} | Diabara TV`;
+  const artistDescription = artistData?.data?.attributes?.Biographie 
+    ? `${artistData.data.attributes.Biographie.substring(0, 200)}...`
+    : `Découvrez ${artistName} sur Diabara TV. Artiste et musique au bout des doigts.`;
+  // Formater l'URL de l'image pour Facebook
+  const formatImageUrl = (imageUrl) => {
+    if (!imageUrl) return 'https://diabara.tv/logo.png';
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+    return `https://api.diabara.tv${imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`}`;
+  };
+  
+  const artistImage = artistData?.data?.attributes?.image?.data?.[0]?.attributes?.formats?.small?.url 
+    ? formatImageUrl(artistData.data.attributes.image.data[0].attributes.formats.small.url)
+    : artistData?.data?.attributes?.image?.data?.[0]?.attributes?.url
+      ? formatImageUrl(artistData.data.attributes.image.data[0].attributes.url)
+      : 'https://diabara.tv/logo.png';
+  const artistUrl = `https://diabara.tv/artists/${artistId}`;
+
   return (
+    <>
+      <SEO
+        title={artistTitle}
+        description={artistDescription}
+        image={artistImage}
+        url={artistUrl}
+        type="profile"
+      />
     <div className="flex flex-col h-full ">
       <DetailsHeader artiste_id={artistId} artistData={artistData} songData={songs} />
  
@@ -71,6 +101,7 @@ const ArtistDetails = () => {
 
 
     </div>
+    </>
   )
 };
 

@@ -1,12 +1,11 @@
 import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { DetailsHeader, Error, Loader, RelatedSongs, SongCard } from "../components";
+import { DetailsHeader, Error, Loader, RelatedSongs, SongCard, SEO } from "../components";
 
 
 import { setActiveSong, playPause } from "../redux/features/playerSlice";
 import {  useGetSongByNameQuery, useGetSongDetailsQuery, useGetSongRelatedQuery } from "../redux/services/songsApi";
 import { useEffect } from "react";
-import { Helmet } from "react-helmet-async";
 import { useGetArtistDetailsQuery } from "../redux/services/artistApi";
 
 const SongDetails = () => {
@@ -39,9 +38,36 @@ const SongDetails = () => {
 
     console.log('streams details', streams)
 
+    // Préparer les données SEO
+    const songName = songData?.data?.attributes?.name || 'Chanson';
+    const artistName = songData?.data?.attributes?.artist?.data?.attributes?.name || '';
+    const songTitle = `${songName}${artistName ? ` - ${artistName}` : ''} | Diabara TV`;
+    const songDescription = `${songName}${artistName ? ` par ${artistName}` : ''} - Découvrez cette musique sur Diabara TV. La musique au bout des doigts.`;
+    // Formater l'URL de l'image pour Facebook
+    const formatImageUrl = (imageUrl) => {
+      if (!imageUrl) return 'https://diabara.tv/logo.png';
+      if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+        return imageUrl;
+      }
+      return `https://api.diabara.tv${imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`}`;
+    };
+    
+    const songImage = songData?.data?.attributes?.cover?.data?.[0]?.attributes?.formats?.small?.url 
+      ? formatImageUrl(songData.data.attributes.cover.data[0].attributes.formats.small.url)
+      : songData?.data?.attributes?.cover?.data?.[0]?.attributes?.url
+        ? formatImageUrl(songData.data.attributes.cover.data[0].attributes.url)
+        : 'https://diabara.tv/logo.png';
+    const songUrl = `https://diabara.tv/songs/${songid}`;
+
     return (
         <>
-          
+          <SEO
+            title={songTitle}
+            description={songDescription}
+            image={songImage}
+            url={songUrl}
+            type="music.song"
+          />
             <div className="flex flex-col">
             {console.log('sond', songData)}
             {console.log('art', artistData)}

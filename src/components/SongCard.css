@@ -1,34 +1,85 @@
+.corner {
+    --b: 1px; /* border width - très fin comme sur l'image */
+    --c: 2em; /* corner size */
+    --r: 1.5em; /* corner rounding */
+    position: relative;
+    border: solid var(--b) transparent;
+    padding: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-.corner{
-    --b: .1em; /* border width */
-	--c: 3em; /* corner size */
-	--r: 2em; /* corner rounding */
-	position: relative;
-	/* margin: 1em auto; */
-	border: solid var(--b) transparent;
-	padding: 1em;
-	max-width: 23em;
-	font: 1.25em ubuntu, sans-serif;
-	
-	
+@media (max-width: 768px) {
+    .corner {
+        --b: 1px; /* même épaisseur sur mobile */
+        --c: 1.2em; /* corner size réduit sur mobile */
+        --r: 1em; /* corner rounding réduit sur mobile */
+    }
 }
 
 .corner::before {
-	position: absolute;
-	z-index: -1;
-	inset: calc(-1*var(--b));
-	border: inherit;
-	border-radius: var(--r);
-	
-	background: linear-gradient(#f36e36,  rgb(238, 152, 23), rgb(5, 41, 219)) border-box;
-	--corner: 
-		conic-gradient(from -90deg at var(--c) var(--c), rgb(0, 0, 255) 25%, #0000 0) 
-			0 0/ calc(100% - var(--c))  calc(100% - var(--c)) border-box;
-	--inner: conic-gradient(red 0 0) padding-box;
-	-webkit-mask: var(--corner), var(--inner);
-	-webkit-mask-composite: source-out;
-					mask: var(--corner) subtract, var(--inner);
-	content: ''
+    position: absolute;
+    z-index: -1;
+    inset: calc(-1 * var(--b));
+    border: inherit;
+    border-radius: var(--r);
+    background: linear-gradient(
+        to bottom right,
+        rgba(249, 115, 22, 0.95) 0%,
+        rgba(249, 115, 22, 0.85) 25%,
+        rgba(249, 115, 22, 0.7) 40%,
+        rgba(59, 130, 246, 0.7) 60%,
+        rgba(37, 99, 235, 0.85) 80%,
+        rgba(37, 99, 235, 0.95) 100%
+    ) border-box;
+    --corner: 
+        conic-gradient(
+            from -90deg at var(--c) var(--c),
+            rgba(249, 115, 22, 1) 25%,
+            rgba(59, 130, 246, 0.95) 25%,
+            transparent 0
+        ) 
+        0 0 / calc(100% - var(--c)) calc(100% - var(--c)) border-box;
+    --inner: conic-gradient(transparent 0 0) padding-box;
+    -webkit-mask: var(--corner), var(--inner);
+    -webkit-mask-composite: source-out;
+    mask: var(--corner) subtract, var(--inner);
+    content: '';
+    opacity: 0.9;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: blur(0.2px);
+}
+
+.corner::after {
+    position: absolute;
+    z-index: -2;
+    inset: calc(-2 * var(--b));
+    border-radius: var(--r);
+    background: linear-gradient(
+        to bottom right,
+        rgba(249, 115, 22, 0.25) 0%,
+        rgba(249, 115, 22, 0.15) 50%,
+        rgba(59, 130, 246, 0.15) 50%,
+        rgba(37, 99, 235, 0.25) 100%
+    );
+    content: '';
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: blur(6px);
+    pointer-events: none;
+}
+
+.corner:hover::before {
+    opacity: 1;
+    filter: blur(0px) brightness(1.2) saturate(1.3);
+    box-shadow: 
+        0 0 8px rgba(249, 115, 22, 0.5),
+        0 0 16px rgba(59, 130, 246, 0.4),
+        inset 0 0 20px rgba(249, 115, 22, 0.1);
+}
+
+.corner:hover::after {
+    opacity: 0.7;
+    filter: blur(10px);
 }
 
 .makeStyles-container-1{

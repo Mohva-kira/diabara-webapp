@@ -1,7 +1,34 @@
 import { defineConfig, loadEnv } from 'vite';
 import commonjs from 'vite-plugin-commonjs'
 import react from '@vitejs/plugin-react';
+import { copyFileSync, existsSync } from 'fs';
+import { join } from 'path';
 // import commonjs from '@rollup/plugin-commonjs';
+
+// Plugin pour copier .htaccess dans dist
+const copyHtaccessPlugin = () => {
+  return {
+    name: 'copy-htaccess',
+    closeBundle() {
+      const htaccessPath = join(process.cwd(), '.htaccess');
+      const distPath = join(process.cwd(), 'dist', '.htaccess');
+      
+      if (existsSync(htaccessPath)) {
+        copyFileSync(htaccessPath, distPath);
+        console.log('✅ .htaccess copié dans dist');
+      }
+      
+      // Copier _redirects pour Netlify
+      const redirectsPath = join(process.cwd(), 'public', '_redirects');
+      const distRedirectsPath = join(process.cwd(), 'dist', '_redirects');
+      
+      if (existsSync(redirectsPath)) {
+        copyFileSync(redirectsPath, distRedirectsPath);
+        console.log('✅ _redirects copié dans dist');
+      }
+    }
+  };
+};
 
 // https://vitejs.dev/config/
 export default ({ mode }) => {
@@ -15,6 +42,7 @@ export default ({ mode }) => {
       include: "**/*.tsx"
     }),
     commonjs(),
+    copyHtaccessPlugin(),
   ],
     server: {
       watch: {

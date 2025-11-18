@@ -27,6 +27,7 @@ import SocialShare from './SocialShare';
 import ArtistRevenue from './ArtistRevenue';
 import Discography from './Discography';
 import SearchResCard from './SearchResCard';
+import SEO from './SEO';
 
 
 export {
@@ -57,5 +58,6 @@ export {
   SocialShare,
   ArtistRevenue,
   Discography,
-  SearchResCard
+  SearchResCard,
+  SEO
 };

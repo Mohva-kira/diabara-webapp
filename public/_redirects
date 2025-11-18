@@ -1,0 +1,11 @@
+# Configuration Netlify pour SPA React
+# Redirige toutes les routes vers index.html sauf les fichiers statiques
+
+# Les fichiers statiques sont servis normalement
+/assets/* 200
+/icons/* 200
+/screenshots/* 200
+
+# Toutes les autres routes redirigent vers index.html
+/*    /index.html   200
+

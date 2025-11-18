@@ -1,0 +1,81 @@
+# Configuration Apache pour SPA React avec Vite
+# Assure que les fichiers statiques sont servis avec les bons types MIME
+
+# Activer le moteur de réécriture
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Ne pas réécrire les fichiers existants (assets, images, etc.)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  
+  # Ne pas réécrire les fichiers dans le dossier assets
+  RewriteCond %{REQUEST_URI} !^/assets/
+  
+  # Rediriger toutes les autres requêtes vers index.html pour React Router
+  RewriteRule ^ index.html [QSA,L]
+</IfModule>
+
+# Types MIME pour les fichiers JavaScript
+<IfModule mod_mime.c>
+  # JavaScript modules
+  AddType application/javascript .js
+  AddType application/javascript .mjs
+  
+  # JavaScript avec type module
+  <FilesMatch "\.(js|mjs)$">
+    Header set Content-Type "application/javascript; charset=utf-8"
+  </FilesMatch>
+  
+  # CSS
+  AddType text/css .css
+  
+  # Images
+  AddType image/png .png
+  AddType image/jpeg .jpg .jpeg
+  AddType image/svg+xml .svg
+  AddType image/webp .webp
+  AddType image/x-icon .ico
+  
+  # Fonts
+  AddType font/woff .woff
+  AddType font/woff2 .woff2
+  AddType application/font-woff .woff
+  AddType application/font-woff2 .woff2
+  
+  # JSON
+  AddType application/json .json
+  
+  # WebAssembly
+  AddType application/wasm .wasm
+</IfModule>
+
+# Headers de cache pour les assets
+<IfModule mod_headers.c>
+  # Cache les assets statiques pendant 1 an
+  <FilesMatch "\.(js|mjs|css|png|jpg|jpeg|svg|woff|woff2|ico|wasm)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  
+  # Pas de cache pour index.html
+  <FilesMatch "index\.html$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+</IfModule>
+
+# Compression GZIP
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json application/xml
+</IfModule>
+
+# Sécurité
+<IfModule mod_headers.c>
+  # Headers de sécurité
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
