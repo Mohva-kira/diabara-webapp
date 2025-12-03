@@ -1,51 +1,76 @@
-// import { View, Text } from 'react-native'
-import React from 'react'
-import { use } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const HeroSection = ({items = [], imageBaseUrl= ""}) => {
+    // Utiliser le premier élément au lieu du deuxième
+    const item = items && items.length > 0 ? items[0] : null;
 
-    const item = items && items.length ? items[1] : null;
-
+    // Debug: vérifier les données
+    console.log("HeroSection - items:", items);
+    console.log("HeroSection - item:", item);
+    console.log("HeroSection - imageBaseUrl:", imageBaseUrl);
 
     // Safe accessors
     const title = item?.attributes?.title ?? "Titre inconnu";
     const description = item?.attributes?.description ?? "";
     const artistName = item?.attributes?.artist?.data?.attributes?.name ?? "";
     const plays = item?.attributes?.plays ?? "1 Million Plays"; // fallback
-    const path = item?.attributes.url ?? "#";
+    const itemId = item?.id;
+    const path = item?.attributes?.url 
+      ? (item.attributes.url.startsWith('/') ? item.attributes.url : `/${item.attributes.url}`)
+      : itemId 
+        ? `/songs/${itemId}` 
+        : "#";
     // image path selection (use medium or url)
     const imageData = item?.attributes?.image?.data?.[0]?.attributes ?? null;
     const imageUrl = imageData
-      ? (imageBaseUrl.replace(/\/$/, "") + (imageData.url ?? imageData.formats?.medium?.url ?? ""))
+      ? (imageBaseUrl.replace(/\/$/, "") + (imageData.url ?? imageData.formats?.medium?.url ?? imageData.formats?.small?.url ?? ""))
       : ""
 
-      const navigate = useNavigate();
+    const navigate = useNavigate();
+    
+    // Si pas d'item, afficher un message ou un placeholder
+    if (!item) {
+      return (
+        <section className="relative w-full overflow-hidden bg-black text-white rounded-2xl" style={{ minHeight: '300px' }}>
+          <div className="relative w-full max-w-7xl mx-auto px-4 lg:px-6 py-6 lg:py-8 flex items-center justify-center" style={{ minHeight: '300px' }}>
+            <p className="text-gray-400">Aucune promotion disponible</p>
+          </div>
+        </section>
+      );
+    }
+    
   return (
-    <section className="relative w-full overflow-hidden h-full bg-black text-white">
+    <section className="relative w-full overflow-hidden bg-black text-white rounded-2xl" style={{ minHeight: '300px' }}>
       {/* decorative gradient overlay (left) */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent pointer-events-none"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent pointer-events-none rounded-2xl"></div>
 
-      <div className="relative w-full h-full max-w-7xl mx-auto px-4 lg:px-6 flex items-center">
+      <div className="relative w-full max-w-7xl mx-auto px-4 lg:px-6 py-6 lg:py-8 flex items-center" style={{ minHeight: '300px' }}>
         {/* Left content */}
-        <div className="w-full lg:w-1/2 z-10 space-y-3">
+        <div className="w-full lg:w-1/2 z-10 space-y-3 lg:pr-8">
           <p className="text-xs text-gray-300 uppercase tracking-wider">
             Trending New Hits
           </p>
 
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold leading-tight">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold leading-tight">
             {title}
           </h1>
 
-          <p className="text-xs sm:text-sm text-gray-300">
-            <span className="font-medium">{artistName}</span>
-            {artistName && " • "}
-            <span className="text-gray-400">{plays}</span>
+          <p className="text-sm sm:text-base text-gray-300">
+            {artistName && (
+              <>
+                <span className="font-medium">{artistName}</span>
+                {plays && " • "}
+              </>
+            )}
+            {plays && <span className="text-gray-400">{plays}</span>}
           </p>
 
-          <p className="max-w-lg text-sm text-gray-300 line-clamp-2">
-            {description}
-          </p>
+          {description && (
+            <p className="max-w-lg text-sm sm:text-base text-gray-300 line-clamp-2">
+              {description}
+            </p>
+          )}
 
           <div className="flex items-center gap-3 pt-2">
             <button
@@ -75,7 +100,7 @@ const HeroSection = ({items = [], imageBaseUrl= ""}) => {
         </div>
 
         {/* Right - image container */}
-        <div className="block lg:w-1/2 relative h-full">
+        <div className="hidden lg:block lg:w-1/2 relative h-full min-h-[250px]">
           {/* vertical dots on the far right like the reference (decorative) */}
           <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 flex flex-col gap-2">
             <span className="w-1 h-1 rounded-full bg-white/30"></span>
@@ -92,12 +117,16 @@ const HeroSection = ({items = [], imageBaseUrl= ""}) => {
                 src={imageUrl}
                 alt={imageData?.alternativeText ?? `${artistName} cover`}
                 className="object-cover object-center h-full w-full rounded-lg grayscale contrast-[0.9] opacity-90"
+                onError={(e) => {
+                  console.warn("HeroSection image failed to load:", imageUrl);
+                  e.target.style.display = 'none';
+                  e.target.nextElementSibling.style.display = 'flex';
+                }}
               />
-            ) : (
-              <div className="h-full w-full bg-gray-800/60 rounded-lg flex items-center justify-center">
-                <span className="text-gray-400 text-sm">No image</span>
-              </div>
-            )}
+            ) : null}
+            <div className="h-full w-full bg-gradient-to-br from-gray-800/60 to-gray-900/60 rounded-lg flex items-center justify-center" style={{ display: imageUrl ? 'none' : 'flex' }}>
+              <span className="text-gray-400 text-sm">No image</span>
+            </div>
           </div>
 
           {/* subtle gradient fade on left of image to blend with content */}

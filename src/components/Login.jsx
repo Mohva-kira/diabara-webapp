@@ -88,26 +88,64 @@ const Login = ({ switchPage, switchModeHandler, login, isFetching, history }) =>
       <div className="w-full max-w-6xl">
         <div className="flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-8 lg:gap-12">
           {/* Section gauche - Image (cachée sur mobile) */}
-          <div className="hidden lg:flex lg:w-1/2 xl:w-2/5 items-center justify-center">
+          <div className="hidden lg:flex lg:w-1/2 xl:w-2/5 items-center justify-center min-h-[500px]">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
-              className="relative"
+              className="relative w-full max-w-md flex items-center justify-center"
             >
-              <img
-                src={sing}
-                alt="Music illustration"
-                className="w-full max-w-md h-auto rounded-2xl shadow-2xl"
-              />
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <div 
+                className="relative w-full rounded-2xl shadow-2xl overflow-visible cursor-pointer group"
                 onClick={() => navigate("/adhesion")}
-                className="absolute bottom-6 right-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-orange-500/50 transition-all duration-300 border border-blue-500/40"
               >
-                Je suis un artiste
-              </motion.button>
+                {/* <img
+                  src={sing}
+                  alt="Je suis un artiste - Diabara TV"
+                  className="w-full h-auto object-contain rounded-2xl transition-transform duration-300 group-hover:scale-105"
+                  style={{ 
+                    maxHeight: '600px',
+                    width: '100%',
+                    height: 'auto',
+                    display: 'block'
+                  }}
+                  onError={(e) => {
+                    console.error("Erreur de chargement de l'image:", sing);
+                    e.target.style.display = 'none';
+                    // Afficher un fallback
+                    const fallback = e.target.nextElementSibling;
+                    if (fallback) {
+                      fallback.style.display = 'flex';
+                    }
+                  }}
+                /> */}
+                {/* Fallback si l'image ne charge pas */}
+                <div 
+                  className=" w-full  bg-gradient-to-br from-blue-600/20 to-orange-600/20 rounded-2xl flex flex-col items-center justify-center p-8"
+                  
+                > 
+                  <div className="text-center">
+                    <h3 className="text-2xl font-bold text-white mb-4">Je suis un artiste</h3>
+                    <p className="text-gray-300 mb-6">Rejoignez la communauté Diabara TV</p>
+                    <button
+                      onClick={() => navigate("/adhesion")}
+                      className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg"
+                    >
+                      S'inscrire comme artiste
+                    </button>
+                  </div>
+                </div>
+                {/* Overlay cliquable pour le bouton dans l'image (zone du bouton "Je suis un artiste") */}
+                <div 
+                  className="absolute bottom-8 right-8 w-48 h-14 cursor-pointer z-10 hover:bg-white/5 rounded-lg transition-all duration-200"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate("/adhesion");
+                  }}
+                  aria-label="Je suis un artiste"
+                  title="Cliquez pour devenir artiste"
+                />
+              </div>
             </motion.div>
           </div>
 

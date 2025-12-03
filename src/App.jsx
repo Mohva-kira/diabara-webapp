@@ -4,6 +4,7 @@ import { useLocation, Routes, Route } from 'react-router-dom';
 import { useReactPWAInstall, ReactPWAInstallProvider } from 'react-pwa-install';
 import ReactGA from 'react-ga4';
 import { initGA, logEvent, logPageView } from './analytics';
+import { initFunnelTracking, trackAppOpen, trackReturningUser, trackFacebookAdClick } from './services/funnelTracking';
 import myLogo from './assets/logo.png';
 
 // Import des composants
@@ -158,13 +159,41 @@ useEffect(() => {
     }
   }, [pwaInstall]);
 
-  
 
-  // Initialisation Google Analytics
+  
+  // Initialisation Google Analytics et Funnel Tracking
   useEffect(() => {
     ReactGA.initialize("G-YQKY9V1351");
     initGA();
     logEvent("Page", "View", "Home Page");
+    
+    // Initialiser le tracking du funnel
+    const { region, utmParams } = initFunnelTracking();
+    
+    // Tracker le clic sur la pub Facebook si présent dans les UTM
+    if (utmParams.utm_source === 'facebook' || utmParams.fbclid) {
+      trackFacebookAdClick(utmParams);
+    }
+    
+    // Vérifier si c'est un utilisateur retournant
+    const auth = localStorage.getItem('auth');
+    const user = auth ? JSON.parse(auth) : null;
+    const isReturning = !!auth && !!localStorage.getItem('diabara_last_visit_timestamp');
+    
+    if (user?.user?.id) {
+      // Tracker l'ouverture de l'app après authentification
+      trackAppOpen({
+        userId: user.user.id,
+        isReturning,
+      });
+      
+      // Tracker le retour utilisateur si applicable
+      if (isReturning) {
+        trackReturningUser({
+          userId: user.user.id,
+        });
+      }
+    }
   }, []);
   
   useEffect(() => {

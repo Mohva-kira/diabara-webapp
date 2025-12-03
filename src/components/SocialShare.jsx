@@ -7,9 +7,11 @@ import {
     FacebookShareButton,
     TwitterShareButton,
     LinkedinShareButton,
+    WhatsappShareButton,
     FacebookIcon,
     TwitterIcon,
-    LinkedinIcon
+    LinkedinIcon,
+    WhatsappIcon
 } from 'react-share';
 import styled from 'styled-components';
 
@@ -18,6 +20,14 @@ const ShareContainer = styled.div`
   justify-content: center;
   gap: 12px;
   align-items: center;
+  
+  /* Sur mobile, disposition verticale et alignement à droite */
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-start;
+    gap: 8px;
+  }
   
   button {
     transition: transform 0.2s ease;
@@ -47,6 +57,9 @@ const SocialShare = ({ url, image, title, description }) => {
   
   // Formater le titre pour Twitter (limité à 280 caractères)
   const twitterTitle = shareText;
+  
+  // Formater le texte pour WhatsApp (avec emoji et URL)
+  const whatsappText = `${shareText}\n\n🎵 ${shareUrl}`;
   
   // Nettoyer le hashtag (enlever caractères spéciaux et espaces)
   const hashtag = title 
@@ -133,6 +146,14 @@ const SocialShare = ({ url, image, title, description }) => {
       >
         <TwitterIcon size={36} round bgStyle={{ fill: '#1DA1F2' }} />
       </TwitterShareButton>
+      
+      <WhatsappShareButton
+        url={shareUrl}
+        title={whatsappText}
+        separator=" - "
+      >
+        <WhatsappIcon size={36} round bgStyle={{ fill: '#25D366' }} />
+      </WhatsappShareButton>
       
       <LinkedinShareButton
         url={shareUrl}

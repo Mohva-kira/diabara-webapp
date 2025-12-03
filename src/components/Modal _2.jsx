@@ -38,7 +38,7 @@ const Modal2 = ({ isActive, setIsActive, children }) => {
               <span className="sr-only">Close modal</span>
             </button>
           </div>
-          <div class="p-1 md:p-2 space-y-4 h-4/5">{children}</div>
+          <div className="p-1 md:p-2 space-y-4 h-4/5">{children}</div>
 
           {/* Modal footer */}
 

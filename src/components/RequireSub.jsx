@@ -88,47 +88,61 @@ const RequireSub = () => {
             controller={{ control: controlledSwiper }}
             onSlideChange={() => console.log("slide change")}
             onSwiper={(swiper) => console.log(swiper)}
-            className="h-full"
+            className="h-full w-full"
             pagination={{ clickable: true }}
             scrollbar={{ draggable: true }}
-            autoplay>
-            {promotionData?.data?.map((item, index) => (
-              <SwiperSlide
-                key={index}
-                className="text-white w-full flex justify-between p-4 items-center h-full">
-                {count <= 3 ? (
-                  <a
-                    className="w-full flex justify-between p-4 items-center h-full"
-                    href="https://www.effectiveratecpm.com/dk6epffzw?key=d70309a31870584c5914e216f01fb799">
-                    <Ads
-                      title={item?.attributes?.title}
-                      description={item?.attributes?.description}
-                      image={
-                        item?.attributes?.image?.data?.[0]?.attributes?.url
-                          ? `${item.attributes.image.data[0].attributes.url}`
-                          : "https://via.placeholder.com/300x200?text=No+Image" // Image par défaut si aucune image n'est disponible
-                      }
-                      url={"aaa"}
-                      artist={item?.attributes?.artist?.data}
-                    />
-                  </a>
-                ) : (
-                  <div>
-                    <Ads
-                      title={item?.attributes?.title}
-                      description={item?.attributes?.description}
-                      image={
-                        item?.attributes?.image?.data?.[0]?.attributes?.url
-                          ? `${item.attributes.image.data[0].attributes.url}`
-                          : "https://via.placeholder.com/300x200?text=No+Image" // Image par défaut si aucune image n'est disponible
-                      }
-                      url={"aaa"}
-                      artist={item?.attributes?.artist?.data}
-                    />
-                  </div>
-                )}
+            autoplay={{
+              delay: 3000,
+              disableOnInteraction: false,
+            }}>
+            {promotionData?.data && promotionData.data.length > 0 ? (
+              promotionData.data.map((item, index) => (
+                <SwiperSlide
+                  key={item.id || index}
+                  className="text-white w-full flex justify-center items-center h-full min-h-[300px]">
+                  {count <= 3 ? (
+                    <a
+                      className="w-full h-full flex justify-center items-center"
+                      href="https://www.effectiveratecpm.com/dk6epffzw?key=d70309a31870584c5914e216f01fb799"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}>
+                      <Ads
+                        title={item?.attributes?.title}
+                        description={item?.attributes?.description}
+                        image={
+                          item?.attributes?.image?.data?.[0]?.attributes?.url
+                            ? `${item.attributes.image.data[0].attributes.url}`
+                            : null
+                        }
+                        url={item?.attributes?.url || "#"}
+                        artist={item?.attributes?.artist?.data}
+                      />
+                    </a>
+                  ) : (
+                    <div className="w-full h-full">
+                      <Ads
+                        title={item?.attributes?.title}
+                        description={item?.attributes?.description}
+                        image={
+                          item?.attributes?.image?.data?.[0]?.attributes?.url
+                            ? `${item.attributes.image.data[0].attributes.url}`
+                            : null
+                        }
+                        url={item?.attributes?.url || "#"}
+                        artist={item?.attributes?.artist?.data}
+                      />
+                    </div>
+                  )}
+                </SwiperSlide>
+              ))
+            ) : (
+              <SwiperSlide className="text-white w-full flex justify-center items-center h-full min-h-[300px]">
+                <div className="text-center p-4">
+                  <p className="text-gray-400">Aucune publicité disponible</p>
+                </div>
               </SwiperSlide>
-            ))}
+            )}
           </Swiper>
         </div>
       </Modal2>

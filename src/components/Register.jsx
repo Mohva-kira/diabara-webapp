@@ -9,6 +9,7 @@ import {
 } from "libphonenumber-js";
 import { toast } from "react-toastify";
 import { MdPhone, MdLock, MdVisibility, MdVisibilityOff, MdCheckCircle } from "react-icons/md";
+import { trackRegistration } from "../services/funnelTracking";
 
 const Register = ({
   switchPage,
@@ -60,6 +61,14 @@ const Register = ({
           localStorage.setItem("auth", JSON.stringify(rep));
           localStorage.setItem("phone", phone);
           dispatch(setCredentials(rep?.data));
+          
+          // Tracker l'inscription (Étape 3 du funnel)
+          trackRegistration({
+            userId: rep?.data?.user?.id || rep?.user?.id,
+            method: 'phone',
+            phone: phone,
+          });
+          
           toast.success("Compte créé avec succès");
           handleSkip();
           switchPage();

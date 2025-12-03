@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { usePostSubscriptionMutation } from "../redux/services/subscription";
 import { toast } from "react-toastify";
+import { trackPremiumConversion } from "../services/funnelTracking";
 
 const Payment = () => {
   const [phone, setPhone] = useState();
@@ -22,9 +23,21 @@ const Payment = () => {
     postSubs({ data }).then((res) => {
       console.log("Abonné effectué avec succès");
       toast.success("Abonné effectué avec succès");
+      
+      // Tracker la conversion premium (Étape 8 du funnel)
+      const currentUser = storageUser || user;
+      trackPremiumConversion({
+        userId: currentUser?.user?.id || currentUser?.id,
+        subscriptionType: data.plan || 'premium',
+        value: data.amount || 0,
+        currency: data.currency || 'XOF',
+        transactionId: data.transaction_id || `sub_${Date.now()}`,
+        duration: data.duration || 'monthly',
+      });
+      
       localStorage.removeItem("subs");
     });
-  });
+  }, [storageUser, user]);
 
   useEffect(() => {
     if (params.type === "success") {

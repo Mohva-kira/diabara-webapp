@@ -15,7 +15,6 @@ import { useDispatch } from "react-redux";
 
 
 import { playPause, setActiveSong } from "../redux/features/playerSlice";
-import { usePlayedMutation } from "../redux/services/songsApi";
 import Download from "./Download";
 import useAnalyticsEventTracker from "./hook/useAnalyticsEventTracker";
 import Like from "./Like";
@@ -44,7 +43,6 @@ const SongCard = ({
   const [imgLoading, setImgLoading] = useState(true);
   const API_FILE_URL = import.meta.env.VITE_API_FILE_URL;
   const [count, setCount] = useState(0);
-  const [postPlayed] = usePlayedMutation();
   const {data: streams, isLoading: isLoadingStreams, refetch} = useGetStreamsQuery(song.id)
   const [isCompleted, setIsCompleted] = useState(false)
   const [isImgError, setIsImgError] = useState(false)
@@ -86,17 +84,11 @@ const SongCard = ({
       nonInteraction: true, // optional, true/false
       transport: "xhr", // optional, beacon/xhr/image
     });
+    
+    // Définir la chanson active et démarrer la lecture
+    // L'enregistrement de la lecture (played) est maintenant géré dans Player.jsx
     dispatch(setActiveSong({ song, data, i }));
     dispatch(playPause(true));
-    if (song?.attributes?.artist?.data?.attributes?.name) {
-      postPlayed({
-        data: {
-          song: song.id,
-          user: userId,
-          visitor: userUUID,
-        },
-      });
-    }
   };
 
   const handleImageLoad = () => setImgLoading(false);
@@ -343,7 +335,10 @@ const SongCard = ({
                 />
               </div>
               
-              <a className="block mt-2" onClick={(e) => e.stopPropagation()}>
+              <a 
+                className="block mt-2 md:block md:mt-2 flex md:flex-row flex-col items-end md:items-center justify-end md:justify-center" 
+                onClick={(e) => e.stopPropagation()}
+              >
                 <SocialShare
                   url={`https://diabara.tv/songs/${song.id}`}
                   image={(() => {
@@ -454,7 +449,10 @@ const SongCard = ({
                 className="mt-2"
               />
               
-              <a className="block mt-3" onClick={(e) => e.stopPropagation()}>
+              <a 
+                className="block mt-3 md:block md:mt-3 flex md:flex-row flex-col items-end md:items-center justify-end md:justify-center" 
+                onClick={(e) => e.stopPropagation()}
+              >
                 <SocialShare
                   url={`https://diabara.tv/songs/${song.id}`}
                   image={(() => {

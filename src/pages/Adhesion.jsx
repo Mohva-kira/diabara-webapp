@@ -3,6 +3,17 @@ import { useAddArtistMutation } from "../redux/services/artistApi";
 import { motion } from "framer-motion";
 import { useRegisterMutation } from "../redux/services/auth";
 import { useNavigate } from "react-router-dom";
+import { 
+  MdPerson, 
+  MdEmail, 
+  MdPhone, 
+  MdLock, 
+  MdLocationOn, 
+  MdMusicNote,
+  MdCalendarToday,
+  MdArtTrack
+} from "react-icons/md";
+import { toast } from "react-toastify";
 const Adhesion = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -19,242 +30,370 @@ const Adhesion = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!name || !email || !phone || !password || !password2) {
+      toast.error("Veuillez remplir tous les champs obligatoires");
+      return;
+    }
+    
+    if (password !== password2) {
+      toast.error("Les mots de passe ne correspondent pas");
+      return;
+    }
+    
     try {
       let data = { username: phone, email, password };
-      const user = await register(JSON.stringify(data)).then((rep) =>
-        console.log("artiste enregistré", rep)
-      );
-      const response = await addArtist(
-        JSON.stringify({ data: [name, email, adresse, genre, date_naissance] })
-      ).then((rep) => console.log("artiste enregistré", rep));
-      alert(response.data.message);
+      const user = await register(JSON.stringify(data));
+      
+      if (user.data) {
+        const artistData = {
+          name,
+          email,
+          adresse,
+          genre,
+          date_naissance,
+          phone
+        };
+        
+        const response = await addArtist(JSON.stringify({ data: artistData }));
+        
+        if (response.data) {
+          toast.success("Inscription réussie ! Bienvenue sur Diabara TV 🎵");
+          navigate("/login");
+        }
+      }
     } catch (error) {
       console.error(error);
-      alert("Error submitting request");
+      toast.error("Erreur lors de l'inscription. Veuillez réessayer.");
     }
   };
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.3
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100
+      }
+    }
+  };
+
+  // Animation musicale
+  const MusicAnimation = () => (
+    <div className="relative w-full h-full flex items-center justify-center">
+      {/* Cercles animés */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        {[...Array(3)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full border-2 border-orange-500/30"
+            style={{
+              width: `${(i + 1) * 100}px`,
+              height: `${(i + 1) * 100}px`,
+            }}
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.6, 0.3],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              delay: i * 0.5,
+            }}
+          />
+        ))}
+      </div>
+      
+      {/* Icône musicale centrale */}
+      <motion.div
+        className="relative z-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full p-8 shadow-2xl"
+        animate={{
+          rotate: [0, 360],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: "linear",
+        }}
+      >
+        <MdMusicNote className="text-6xl text-white" />
+      </motion.div>
+      
+      {/* Notes de musique flottantes */}
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute text-orange-400 text-2xl"
+          style={{
+            left: `${20 + i * 15}%`,
+            top: `${30 + (i % 2) * 40}%`,
+          }}
+          animate={{
+            y: [-10, -30, -10],
+            opacity: [0.4, 1, 0.4],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            delay: i * 0.5,
+          }}
+        >
+          ♪
+        </motion.div>
+      ))}
+    </div>
+  );
+
   return (
-    <section className="h-screen">
-      <div className="h-full">
-        <div className="g-6 flex h-full flex-wrap items-center justify-center lg:justify-between">
-          <div className="shrink-1 mb-12 grow-0 basis-auto md:mb-0 md:w-9/12 md:shrink-0 lg:w-6/12 xl:w-6/12">
-            <img
-              src="https://sdk.bitmoji.com/render/panel/20042967-99547979581_5-s5-v1.png?transparent=1&palette=1&scale=2"
-              className="w-full "
-              alt="Sample image"
-            />
-          </div>
+    <section className="min-h-screen bg-gradient-to-br from-black via-black to-black flex items-center justify-center p-4">
+      <motion.div 
+        className="w-full max-w-6xl"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12">
+          {/* Section gauche - Animation musicale */}
+          <motion.div 
+            className="w-full lg:w-1/2 h-96 lg:h-[600px]"
+            variants={itemVariants}
+          >
+            <MusicAnimation />
+          </motion.div>
 
-          <div className="mb-12 md:mb-0 md:w-8/12 lg:w-5/12 xl:w-5/12">
-            <p className="text-slate-200 text-center mb-4 mr-4 text-3xl">
-              Inscription artiste
-            </p>
-            <form
-              className="bg-slate-400 p-2 rounded-lg"
-              onSubmit={handleSubmit}>
-              <div className="flex flex-row items-center justify-center lg:justify-center">
-                <button
-                  type="button"
-                  data-te-ripple-init
-                  data-te-ripple-color="light"
-                  className="inlne-block mx-1 h-9 w-9 rounded-full bg-primary uppercase leading-normal text-white shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150 ease-in-out hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] dark:shadow-[0_4px_9px_-4px_rgba(59,113,202,0.5)] dark:hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)]">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="mx-auto h-3.5 w-3.5"
-                    fill="currentColor"
-                    viewBox="0 0 24 24">
-                    <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z" />
-                  </svg>
-                </button>
-
-                <button
-                  type="button"
-                  data-te-ripple-init
-                  data-te-ripple-color="light"
-                  className="inlne-block mx-1 h-9 w-9 rounded-full bg-primary uppercase leading-normal text-white shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150 ease-in-out hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] dark:shadow-[0_4px_9px_-4px_rgba(59,113,202,0.5)] dark:hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)]">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="mx-auto h-3.5 w-3.5"
-                    fill="currentColor"
-                    viewBox="0 0 24 24">
-                    <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
-                  </svg>
-                </button>
-
-                <button
-                  type="button"
-                  data-te-ripple-init
-                  data-te-ripple-color="light"
-                  className="inlne-block mx-1 h-9 w-9 rounded-full bg-primary uppercase leading-normal text-white shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150 ease-in-out hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] dark:shadow-[0_4px_9px_-4px_rgba(59,113,202,0.5)] dark:hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)]">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="mx-auto h-3.5 w-3.5"
-                    fill="currentColor"
-                    viewBox="0 0 24 24">
-                    <path d="M4.98 3.5c0 1.381-1.11 2.5-2.48 2.5s-2.48-1.119-2.48-2.5c0-1.38 1.11-2.5 2.48-2.5s2.48 1.12 2.48 2.5zm.02 4.5h-5v16h5v-16zm7.982 0h-4.968v16h4.969v-8.399c0-4.67 6.029-5.052 6.029 0v8.399h4.988v-10.131c0-7.88-8.922-7.593-11.018-3.714v-2.155z" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="my-4 flex items-center before:mt-0.5 before:flex-1 before:border-t before:border-neutral-300 after:mt-0.5 after:flex-1 after:border-t after:border-neutral-300">
-                <p className="mx-4 mb-0 text-center font-semibold dark:text-white">
-                  Or
+          {/* Section droite - Formulaire */}
+          <motion.div 
+            className="w-full lg:w-1/2 max-w-md"
+            variants={itemVariants}
+          >
+            <div className="bg-gradient-to-br from-black/90 via-black/80 to-black/90 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-orange-500/20">
+              {/* Header */}
+              <div className="text-center mb-8">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+                  className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full mb-4"
+                >
+                  <MdArtTrack className="text-3xl text-white" />
+                </motion.div>
+                <h1 className="text-3xl font-bold text-white mb-2">
+                  Inscription Artiste
+                </h1>
+                <p className="text-gray-400">
+                  Rejoignez la communauté Diabara TV 🎵
                 </p>
               </div>
 
-              <div className="relative mb-6" data-te-input-wrapper-init>
-                <input
-                  type="text"
-                  className="peer block min-h-[auto] bg-slate-200 w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[2.15] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
-                  id="exampleFormControlInput2"
-                  placeholder="Nom"
-                  onChange={(e) => setName(e.target.value)}
-                />
-                <label
-                  htmlFor="exampleFormControlInput2"
-                  className={`pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[2.15] text-slate-600 transition-all duration-200 ease-out peer-focus:-translate-y-[2.15rem] peer-focus:scale-[0.8] ${
-                    name && "scale-[0.8] text-primary -translate-y-[2.15rem]"
-                  } peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[1.15rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-slate-600 dark:peer-focus:text-primary`}>
-                  Nom d'artiste
-                </label>
-              </div>
-              <div className="relative mb-6" data-te-input-wrapper-init>
-                <input
-                  type="email"
-                  className="peer block bg-slate-200 min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[2.15] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
-                  id="exampleFormControlInput2"
-                  placeholder="Nom"
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-                <label
-                  htmlFor="exampleFormControlInput2"
-                  className={`pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[2.15] text-slate-600 transition-all duration-200 ease-out peer-focus:-translate-y-[2.15rem] peer-focus:scale-[0.8] ${
-                    name && "scale-[0.8] text-primary -translate-y-[2.15rem]"
-                  } peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[1.15rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-slate-600 dark:peer-focus:text-primary`}>
-                  Email
-                </label>
-              </div>
-              <div className="relative mb-6" data-te-input-wrapper-init>
-                <input
-                  type="text"
-                  className="peer block bg-slate-200 min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[2.15] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
-                  id="exampleFormControlInput2"
-                  placeholder="Nom"
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-                <label
-                  htmlFor="exampleFormControlInput2"
-                  className={`pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[2.15] text-slate-600 transition-all duration-200 ease-out peer-focus:-translate-y-[2.15rem] peer-focus:scale-[0.8] ${
-                    name && "scale-[0.8] text-primary -translate-y-[2.15rem]"
-                  } peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[1.15rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-slate-600 dark:peer-focus:text-primary`}>
-                  Téléphone
-                </label>
-              </div>
-              <div className="relative mb-6" data-te-input-wrapper-init>
-                <input
-                  type="date"
-                  className="peer text-slate-600  bg-slate-200 block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[2.15] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-slate-600 dark:placeholder:text-slate-600 [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
-                  id="exampleFormControlInput2"
-                  placeholder="Nom"
-                  onChange={(e) => setDate_naissance(e.target.value)}
-                />
-                <label
-                  htmlFor="exampleFormControlInput2"
-                  className={`pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[2.15] text-slate-600 transition-all duration-200 ease-out peer-focus:-translate-y-[2.15rem] peer-focus:scale-[0.8] scale-[0.8] text-primary -translate-y-[2.15rem] peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[1.15rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-slate-600 dark:peer-focus:text-primary`}>
-                  Date de naissance
-                </label>
-              </div>
+              <form className="space-y-6" onSubmit={handleSubmit}>
 
-              <div className="relative mb-6" data-te-input-wrapper-init>
-                <input
-                  type="password"
-                  className="peer bg-slate-200 block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[2.15] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
-                  id="password"
-                  placeholder="Nom"
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <label
-                  htmlFor="exampleFormControlInput2"
-                  className={`pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[2.15] text-slate-600 transition-all duration-200 ease-out peer-focus:-translate-y-[2.15rem] peer-focus:scale-[0.8] scale-[0.8] text-primary -translate-y-[2.15rem] peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[1.15rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-slate-600 dark:peer-focus:text-primary`}>
-                  Mot de passe
-                </label>
-              </div>
+                {/* Nom d'artiste */}
+                <motion.div 
+                  className="relative"
+                  variants={itemVariants}
+                >
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <MdPerson className="text-gray-400 text-xl" />
+                  </div>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-black/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300"
+                    placeholder="Nom d'artiste"
+                    required
+                  />
+                </motion.div>
 
-              <div className="relative mb-12" data-te-input-wrapper-init>
-                <input
-                  type="password"
-                  className="peer bg-slate-200 block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[2.15] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
-                  id="password2"
-                  placeholder="Nom"
-                  onChange={(e) => setPassword2(e.target.value)}
-                />
-                <label
-                  htmlFor="exampleFormControlInput2"
-                  className={`pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[2.15] text-slate-600 transition-all duration-200 ease-out peer-focus:-translate-y-[2.15rem] peer-focus:scale-[0.8] scale-[0.8] text-primary -translate-y-[2.15rem] peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[1.15rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-slate-600 dark:peer-focus:text-primary`}>
-                  Mot de passe
-                </label>
-              </div>
-              <div className="relative mb-6" data-te-input-wrapper-init>
-                <input
-                  type="text"
-                  className="peer bg-slate-200 block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[2.15] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
-                  id="adresse"
-                  placeholder="adresse"
-                  onChange={(e) => setAdresse(e.target.value)}
-                />
-                <label
-                  htmlFor="exampleFormControlInput2"
-                  className={`pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[2.15] text-slate-600 transition-all duration-200 ease-out peer-focus:-translate-y-[2.15rem] peer-focus:scale-[0.8] ${
-                    name && "scale-[0.8] text-primary -translate-y-[2.15rem]"
-                  } peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[1.15rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-slate-600 dark:peer-focus:text-primary`}>
-                  Adresse
-                </label>
-              </div>
+                {/* Email */}
+                <motion.div 
+                  className="relative"
+                  variants={itemVariants}
+                >
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <MdEmail className="text-gray-400 text-xl" />
+                  </div>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-black/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300"
+                    placeholder="Email"
+                    required
+                  />
+                </motion.div>
 
-              <div className="relative mb-6" data-te-input-wrapper-init>
-                <select
-                  type="date"
-                  className="peer bg-slate-200 text-slate-600 block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[2.15] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-slate-600 dark:placeholder:text-slate-600 [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
-                  id="exampleFormControlInput2"
-                  placeholder="Nom"
-                  onChange={(e) => setDate_naissance(e.target.value)}
-                  multiple>
-                  <option value="mandingue">Mandingue</option>
-                  <option value="mandingue">Griot</option>
-                  <option value="mandingue">Rap</option>
-                  <option value="mandingue">RnB</option>
-                  <option value="mandingue">Reggae</option>
-                  <option value="mandingue">Mandingue</option>
-                </select>
-                <label
-                  htmlFor="exampleFormControlInput2"
-                  className={`pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[2.15] text-slate-600 transition-all duration-200 ease-out peer-focus:-translate-y-[2.15rem] scale-[0.8] text-primary -translate-y-[2.15rem] peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[2.15rem] peer-data-[te-input-state-active]:scale-[1.8] motion-reduce:transition-none dark:text-slate-600 dark:peer-focus:text-primary`}>
-                  Genre
-                </label>
-              </div>
-              <div className="flex w-full items-center justify-center">
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  type="submit"
-                  // onClick={(e) => handleSubmit(e)}
-                  className="ml-3 text-white bg-orange-600 rounded-lg p-1 top-2 transition duration-150 ease-in-out hover:text-danger-600 focus:text-danger-600 active:text-danger-700">
-                  S'inscrire
-                </motion.button>
+                {/* Téléphone */}
+                <motion.div 
+                  className="relative"
+                  variants={itemVariants}
+                >
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <MdPhone className="text-gray-400 text-xl" />
+                  </div>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-black/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300"
+                    placeholder="Téléphone"
+                    required
+                  />
+                </motion.div>
 
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => navigate("/login")}
-                  className="ml-3 text-white bg-orange-600 rounded-lg p-1 top-2 transition duration-150 ease-in-out hover:text-danger-600 focus:text-danger-600 active:text-danger-700">
-                  Se connecter
-                </motion.button>
+                {/* Date de naissance */}
+                <motion.div 
+                  className="relative"
+                  variants={itemVariants}
+                >
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <MdCalendarToday className="text-gray-400 text-xl" />
+                  </div>
+                  <input
+                    type="date"
+                    value={date_naissance}
+                    onChange={(e) => setDate_naissance(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-black/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300"
+                  />
+                </motion.div>
+
+                {/* Mot de passe */}
+                <motion.div 
+                  className="relative"
+                  variants={itemVariants}
+                >
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <MdLock className="text-gray-400 text-xl" />
+                  </div>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-black/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300"
+                    placeholder="Mot de passe"
+                    required
+                  />
+                </motion.div>
+
+                {/* Confirmation mot de passe */}
+                <motion.div 
+                  className="relative"
+                  variants={itemVariants}
+                >
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <MdLock className="text-gray-400 text-xl" />
+                  </div>
+                  <input
+                    type="password"
+                    value={password2}
+                    onChange={(e) => setPassword2(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-black/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300"
+                    placeholder="Confirmer le mot de passe"
+                    required
+                  />
+                </motion.div>
+
+                {/* Adresse */}
+                <motion.div 
+                  className="relative"
+                  variants={itemVariants}
+                >
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <MdLocationOn className="text-gray-400 text-xl" />
+                  </div>
+                  <input
+                    type="text"
+                    value={adresse}
+                    onChange={(e) => setAdresse(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-black/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300"
+                    placeholder="Adresse"
+                  />
+                </motion.div>
+
+                {/* Genre musical */}
+                <motion.div 
+                  className="relative"
+                  variants={itemVariants}
+                >
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                    <MdMusicNote className="text-gray-400 text-xl" />
+                  </div>
+                  <select
+                    value={genre}
+                    onChange={(e) => setGenre(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-black/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300 appearance-none"
+                  >
+                    <option value="">Sélectionner un genre</option>
+                    <option value="mandingue">Mandingue</option>
+                    <option value="griot">Griot</option>
+                    <option value="rap">Rap</option>
+                    <option value="rnb">RnB</option>
+                    <option value="reggae">Reggae</option>
+                    <option value="afrobeat">Afrobeat</option>
+                  </select>
+                </motion.div>
+                {/* Boutons */}
+                <motion.div 
+                  className="flex flex-col sm:flex-row gap-4 pt-4"
+                  variants={itemVariants}
+                >
+                  <motion.button
+                    type="submit"
+                    disabled={isFetchingRegister}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-orange-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isFetchingRegister ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        Inscription...
+                      </div>
+                    ) : (
+                      "S'inscrire"
+                    )}
+                  </motion.button>
+
+                  <motion.button
+                    type="button"
+                    onClick={() => navigate("/login")}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex-1 bg-transparent border border-orange-500 text-orange-500 font-semibold py-3 px-6 rounded-xl hover:bg-orange-500 hover:text-white transition-all duration-300"
+                  >
+                    Se connecter
+                  </motion.button>
+                </motion.div>
+              </form>
+
+              {/* Footer */}
+              <div className="text-center mt-6">
+                <p className="text-gray-400 text-sm">
+                  En vous inscrivant, vous acceptez nos{" "}
+                  <a href="/terms-of-service" className="text-orange-500 hover:underline">
+                    conditions d'utilisation
+                  </a>
+                </p>
               </div>
-            </form>
-          </div>
+            </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };

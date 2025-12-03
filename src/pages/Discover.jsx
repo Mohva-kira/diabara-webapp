@@ -97,8 +97,8 @@ const Discover = () => {
   // Calculer la taille dynamique basée sur le scroll
   const getHeroSectionStyle = () => {
     const maxScroll = 200; // Distance de scroll maximale pour l'effet
-    const minHeight = 100; // Hauteur minimale en pixels
-    const maxHeight = 400; // Hauteur maximale en pixels
+    const minHeight = 300; // Hauteur minimale en pixels (augmentée pour garantir l'affichage)
+    const maxHeight = 500; // Hauteur maximale en pixels
     
     // Calculer la progression du scroll (0 à 1)
     const scrollProgress = Math.min(scrollY / maxScroll, 1);
@@ -107,10 +107,11 @@ const Discover = () => {
     const currentHeight = maxHeight - (scrollProgress * (maxHeight - minHeight));
     
     // Calculer l'opacité
-    const opacity = Math.max(1 - (scrollProgress * 0.5), 0.3);
+    const opacity = Math.max(1 - (scrollProgress * 0.5), 0.5);
     
     return {
-      height: `${currentHeight}px`,
+      height: `${Math.max(currentHeight, minHeight)}px`,
+      minHeight: `${minHeight}px`,
       opacity: opacity,
       transition: 'height 0.3s ease-out, opacity 0.3s ease-out',
       overflow: 'hidden'
@@ -197,39 +198,41 @@ const Discover = () => {
         ref={scrollContainerRef}
         className="flex-1 overflow-y-auto overflow-x-hidden pb-32 pt-4 px-6 no-scrollbar"
         onScroll={handleScroll}
+        onScrollCapture={handleScroll}
         style={{ scrollBehavior: 'smooth' }}
       >
+        {console.log("isScrolled", isScrolled)}
+        {console.log("scrollY", scrollY)}
+        {console.log("scrollContainerRef", promotionData)}
         {/* Section Hero - cachée lors du scroll */}
-        <div 
-          ref={heroSectionRef}
-          className={`
-            w-full mb-4 rounded-2xl flex justify-center items-center
-            transition-all duration-500 ease-in-out
-            ${isScrolled ? 'opacity-0 h-0 mb-0 overflow-hidden pointer-events-none' : 'opacity-100'}
-          `}
-          style={!isScrolled ? getHeroSectionStyle() : {}}
-        >
-          {promotionLoading && <Loader title="Loading promotions..." />}
-          {!promotionLoading &&
-            promotionData &&
-            promotionData.data &&
-            promotionData.data.length === 0 && (
-              <div className="text-gray-500">
-                Aucune promotion disponible pour le moment.
+        {!isScrolled && (
+          <div 
+            ref={heroSectionRef}
+            className="w-full mb-4 rounded-2xl transition-all duration-500 ease-in-out"
+            style={getHeroSectionStyle()}
+          >
+            {promotionLoading && (
+              <div className="w-full flex justify-center items-center" style={{ minHeight: '300px' }}>
+                <Loader title="Loading promotions..." />
               </div>
             )}
-          {!promotionLoading &&
-            promotionData &&
-            promotionData.data &&
-            promotionData.data.length > 0 && (
-              <div className="w-full h-full">
+            {
+              promotionData?.data &&
+              promotionData?.data.length === 0 && (
+                <div className="w-full flex justify-center items-center text-gray-500" style={{ minHeight: '300px' }}>
+                  Aucune promotion disponible pour le moment.
+                </div>
+              )}
+            {
+              promotionData?.data &&
+              promotionData?.data.length > 0 && (
                 <HeroSection
                   items={promotionData.data}
                   imageBaseUrl={import.meta.env.VITE_API_FILE_URL}
                 />
-              </div>
-            )}
-        </div>
+              )}
+          </div>
+        )}
 
         {/* Liste des chansons avec infinite scroll */}
         <div 
