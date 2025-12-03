@@ -19,9 +19,9 @@ const Track = ({ isPlaying, isActive, activeSong }) => {
         className={`${isPlaying && isActive ? "animate-[spin_3s_linear_infinite]" : ""} hidden sm:block h-16 w-16 mr-4`}>
         <img
           src={
-            onLine
-              ? `${API_FILE_URL}${activeSong?.attributes?.cover?.data[0]?.attributes?.url}`
-              : activeSong?.attributes.cover
+            onLine && activeSong?.attributes?.cover?.data && Array.isArray(activeSong.attributes.cover.data) && activeSong.attributes.cover.data.length > 0 && activeSong.attributes.cover.data[0]?.attributes?.url
+              ? `${API_FILE_URL}${activeSong.attributes.cover.data[0].attributes.url}`
+              : activeSong?.attributes?.cover || ''
           }
           alt="cover art"
           className="rounded-full"

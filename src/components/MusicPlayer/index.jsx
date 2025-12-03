@@ -46,6 +46,8 @@ const MusicPlayer = ({ setIsVisible, onMinimize }) => {
   };
 
   const handleNextSong = () => {
+    if (!currentSongs || currentSongs.length === 0) return;
+    
     dispatch(playPause(false));
 
     if (!shuffle) {
@@ -56,6 +58,8 @@ const MusicPlayer = ({ setIsVisible, onMinimize }) => {
   };
 
   const handlePrevSong = () => {
+    if (!currentSongs || currentSongs.length === 0) return;
+    
     if (currentIndex === 0) {
       dispatch(prevSong(currentSongs.length - 1));
     } else if (shuffle) {
@@ -69,24 +73,36 @@ const MusicPlayer = ({ setIsVisible, onMinimize }) => {
     if (currentSongs?.length) dispatch(playPause(true));
   }, [currentIndex]);
 
-  navigator.mediaSession.setActionHandler("play", handlePlayPause);
-  navigator.mediaSession.setActionHandler("pause", handlePlayPause);
-  navigator.mediaSession.setActionHandler("nexttrack", () =>
-    dispatch(nextSong(currentIndex + 1))
-  );
-  navigator.mediaSession.setActionHandler("previoustrack", handlePrevSong);
-  navigator.mediaSession.setActionHandler("seekto", () => seekTime);
-  navigator.mediaSession.metadata = new MediaMetadata({
-    title: activeSong?.attributes?.name,
-    artist: activeSong?.attributes?.artist?.data?.attributes?.name,
-    artwork: [
-      {
-        src:
-          "https://api.diabara.tv" +
-          activeSong?.attributes?.cover?.data[0]?.attributes?.url,
-      },
-    ],
-  });
+  // Configuration du MediaSession API
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && navigator.mediaSession) {
+      navigator.mediaSession.setActionHandler("play", handlePlayPause);
+      navigator.mediaSession.setActionHandler("pause", handlePlayPause);
+      navigator.mediaSession.setActionHandler("nexttrack", () =>
+        dispatch(nextSong((currentIndex + 1) % (currentSongs?.length || 1)))
+      );
+      navigator.mediaSession.setActionHandler("previoustrack", handlePrevSong);
+      navigator.mediaSession.setActionHandler("seekto", () => seekTime);
+      
+      // Mettre à jour les métadonnées seulement si activeSong existe
+      if (activeSong?.attributes) {
+        const coverData = activeSong?.attributes?.cover?.data;
+        const coverUrl = coverData && Array.isArray(coverData) && coverData.length > 0 && coverData[0]?.attributes
+          ? coverData[0].attributes.url 
+          : null;
+        
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: activeSong?.attributes?.name || 'Titre inconnu',
+          artist: activeSong?.attributes?.artist?.data?.attributes?.name || 'Artiste inconnu',
+          artwork: coverUrl ? [
+            {
+              src: "https://api.diabara.tv" + coverUrl,
+            },
+          ] : [],
+        });
+      }
+    }
+  }, [activeSong, currentIndex, currentSongs?.length, handlePlayPause, handlePrevSong, seekTime, dispatch]);
   return (
     <div className="relative sm:px-2 mb-5 px-2 m-2 w-full flex flex-col items-center justify-between border-t border-gray-600">
       {/* Boutons de contrôle en haut à droite */}
@@ -140,7 +156,37 @@ const MusicPlayer = ({ setIsVisible, onMinimize }) => {
         isActive={isActive}
         activeSong={activeSong}
       />
-      <div className="flex-1 flex flex-col items-center justify-center">
+      
+      {/* Animation visuelle quand la musique démarre */}
+      {isPlaying && isActive && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
+          <div className="absolute inset-0 flex items-center justify-center">
+            {/* Ondes sonores animées */}
+            <div className="relative w-32 h-32 sm:w-40 sm:h-40">
+              <div className="absolute inset-0 rounded-full border-4 border-orange-500/30 animate-ping"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-orange-500/40 animate-ping" style={{ animationDelay: '0.2s' }}></div>
+              <div className="absolute inset-0 rounded-full border-4 border-orange-500/50 animate-ping" style={{ animationDelay: '0.4s' }}></div>
+            </div>
+            {/* Particules flottantes */}
+            <div className="absolute inset-0">
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-2 h-2 bg-orange-500/60 rounded-full animate-bounce"
+                  style={{
+                    left: `${20 + i * 15}%`,
+                    top: `${30 + i * 10}%`,
+                    animationDelay: `${i * 0.2}s`,
+                    animationDuration: `${1 + i * 0.2}s`,
+                  }}
+                ></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <div className="flex-1 flex flex-col items-center justify-center relative z-10">
         <Controls
           isPlaying={isPlaying}
           isActive={isActive}

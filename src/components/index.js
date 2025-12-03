@@ -28,6 +28,11 @@ import ArtistRevenue from './ArtistRevenue';
 import Discography from './Discography';
 import SearchResCard from './SearchResCard';
 import SEO from './SEO';
+import FeaturedCarousel from './FeaturedCarousel';
+import PopularPlaylists from './PopularPlaylists';
+import SwipePlayer from './SwipePlayer';
+import OnboardingPopup from './OnboardingPopup';
+import SongBadge from './SongBadge';
 
 
 export {
@@ -59,5 +64,10 @@ export {
   ArtistRevenue,
   Discography,
   SearchResCard,
-  SEO
+  SEO,
+  FeaturedCarousel,
+  PopularPlaylists,
+  SwipePlayer,
+  OnboardingPopup,
+  SongBadge
 };

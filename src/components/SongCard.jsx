@@ -25,6 +25,7 @@ import "./SongCard.css";
 import Streams from "./Streams";
 import SongActions from "./SongActions";
 import { useGetStreamsQuery } from "../redux/services/streams";
+import SongBadge from "./SongBadge";
 
 const SongCard = ({
   song,
@@ -400,6 +401,10 @@ const SongCard = ({
 
             <div className="md:relative md:z-10 md:mt-auto md:pt-4 md:bg-gradient-to-t from-black/90 via-black/70 to-transparent md:flex-1 w-full flex flex-col justify-between md:gap-3 gap-2">
               <div className="space-y-2 md:space-y-3">
+                {/* Badge */}
+                <div className="w-full flex justify-center">
+                  <SongBadge song={song} index={i} />
+                </div>
                 <div className="w-full flex justify-center items-center">
                   <p className="font-bold md:text-lg text-sm md:m-0 md:p-0 md:w-full w-[220px] text-ellipsis flex justify-center items-center gap-2 capitalize text-white truncate hover:text-orange-400 transition-colors">
                     <MdMusicNote className="text-orange-500 text-lg md:text-xl drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]" />
